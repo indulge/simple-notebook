@@ -60,7 +60,7 @@ const config = {
             type: 'docSidebar',
             sidebarId: 'tutorialSidebar',
             position: 'left',
-            label: 'Docs',
+            label: 'Show all notes',
           },
           {
             href: 'https://github.com/indulge/sachin-notebook',
