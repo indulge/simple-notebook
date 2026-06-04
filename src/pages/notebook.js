@@ -746,7 +746,7 @@ export default function NotebookPage() {
     setLoadingNote(note.name);
     setStatus('');
     try {
-      const res = await fetch(note.url, { headers: authHeaders() });
+      const res = await fetch(`${API}/${DOCS_PATH}/${selectedNotebook.name}/${note.name}?ref=${BRANCH}&_=${Date.now()}`, { headers: authHeaders() });
       if (res.ok) {
         const data = await res.json();
         const raw = b64Decode(data.content);
