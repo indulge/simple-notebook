@@ -1,11 +1,25 @@
-# Sachin's Public Notebook
+# Sachin's Notebook
 
 Notes, tutorials, and references — mostly on AI, tooling, and software engineering.
 
----
+Built with [Docusaurus](https://docusaurus.io).
 
-## Claude Code
+## Local development
 
-### [Claude Code Basics: An Interactive Tutorial](claude-notes/claude-workshop-1.md)
+```bash
+npm install
+npm start        # dev server at http://localhost:3000
+```
 
-A hands-on walkthrough of the five Claude Code extension points — Tools, Workflows, Commands, Skills, and Hooks. Each section explains the concept, shows a real example from a working project, and includes a ready-to-paste prompt so you can build it yourself. By the end you have a fully wired weather + quote project that demonstrates all five patterns working together.
+## Build
+
+```bash
+npm run build    # outputs to build/
+npm run serve    # preview the production build
+```
+
+## Deploy (GitHub Pages)
+
+```bash
+GIT_USER=indulge npm run deploy
+```

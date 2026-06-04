@@ -1,3 +1,8 @@
+---
+sidebar_label: 'Workshop 1 — The Five Building Blocks'
+sidebar_position: 1
+---
+
 # Claude Code Basics: An Interactive Tutorial
 
 > **How to use this file**: Paste the prompt blocks marked with ▶ into Claude Code one at a time.

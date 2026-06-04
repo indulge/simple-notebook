@@ -1,0 +1,11 @@
+.heroBanner {
+  padding: 4rem 0;
+  text-align: center;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 2rem;
+  }
+}
