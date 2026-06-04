@@ -63,8 +63,8 @@ const config = {
             label: 'Show all notes',
           },
           {
-            href: 'https://github.com/indulge/sachin-notebook',
-            label: 'GitHub',
+            to: '/notebook',
+            label: 'Write',
             position: 'right',
           },
         ],
