@@ -30,6 +30,21 @@ const config = {
     locales: ['en'],
   },
 
+  plugins: ['./plugins/notebook-snapshot'],
+
+  themes: [
+    [
+      '@easyops-cn/docusaurus-search-local',
+      /** @type {import('@easyops-cn/docusaurus-search-local').PluginOptions} */
+      ({
+        hashed: true,
+        indexDocs: true,
+        indexPages: false,
+        docsRouteBasePath: '/docs',
+      }),
+    ],
+  ],
+
   presets: [
     [
       'classic',
@@ -38,6 +53,7 @@ const config = {
         docs: {
           sidebarPath: './sidebars.js',
           editUrl: 'https://github.com/indulge/sachin-notebook/tree/main/',
+          showLastUpdateTime: true,
         },
         blog: false,
         theme: {
@@ -60,7 +76,7 @@ const config = {
             type: 'docSidebar',
             sidebarId: 'tutorialSidebar',
             position: 'left',
-            label: 'Show all notes',
+            label: 'All notes',
           },
           {
             to: '/notebook',
