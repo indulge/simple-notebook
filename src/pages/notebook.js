@@ -20,6 +20,51 @@ function b64Decode(str) {
   return decodeURIComponent(escape(atob(str.replace(/\n/g, ''))));
 }
 
+// ── Metadata helpers ─────────────────────────────────────────────────────────
+// The _metadata.json file holds note titles and the user-defined display order.
+// New format: { titles: { "file.md": "Title" }, order: ["file.md", ...] }
+// Legacy format: a flat { "file.md": "Title" } map (order derived from key order).
+
+function parseMetadata(obj) {
+  if (obj && typeof obj === 'object' && obj.titles && typeof obj.titles === 'object') {
+    return { titles: obj.titles, order: Array.isArray(obj.order) ? obj.order : Object.keys(obj.titles) };
+  }
+  const titles = obj || {};
+  return { titles, order: Object.keys(titles) };
+}
+
+function serializeMetadata(titles, order) {
+  return JSON.stringify({ titles, order }, null, 2);
+}
+
+// Sort the GitHub file listing by the saved order; anything not in `order`
+// (newly created, legacy) is appended to the end, never sorted alphabetically.
+function orderNotes(notes, order) {
+  const byName = new Map(notes.map(n => [n.name, n]));
+  const seen = new Set();
+  const result = [];
+  for (const name of order || []) {
+    const n = byName.get(name);
+    if (n) { result.push(n); seen.add(name); }
+  }
+  for (const n of notes) {
+    if (!seen.has(n.name)) result.push(n);
+  }
+  return result;
+}
+
+// Move `item` so it lands at insertion slot `index` (0..N) measured against the
+// current list. Removing the item first shifts later slots down by one.
+function moveToIndex(list, item, index) {
+  const result = [...list];
+  const from = result.indexOf(item);
+  if (from === -1) return result;
+  result.splice(from, 1);
+  const target = from < index ? index - 1 : index;
+  result.splice(target, 0, item);
+  return result;
+}
+
 // ── Token gate ─────────────────────────────────────────────────────────────
 
 function TokenGate({ onAuthenticated, onDismiss }) {
@@ -127,7 +172,10 @@ function Sidebar({ notebooks, selected, onSelect, onNewNotebook, loading, onRefr
 
 // ── Expandable note tile (Jupyter-style inline expand/collapse) ───────────────
 
-function ExpandableNote({ note, title, expanded, onToggle, onLoad, onSave, deleteSlot }) {
+function ExpandableNote({
+  note, title, expanded, onToggle, onLoad, onSave, deleteSlot,
+  index, onDragStart, onHover, onDropAt, onDragEnd, dragging, dragActive,
+}) {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [loaded, setLoaded] = useState(false);
@@ -186,8 +234,35 @@ function ExpandableNote({ note, title, expanded, onToggle, onLoad, onSave, delet
   };
 
   return (
-    <div style={{ ...s.noteItem, ...(expanded ? s.noteItemExpanded : {}) }} className="note-item-row">
+    <div
+      style={{
+        ...s.noteItem,
+        ...(expanded ? s.noteItemExpanded : {}),
+        ...(dragging ? s.noteItemDragging : {}),
+      }}
+      className="note-item-row"
+      onDragOver={e => {
+        if (!dragActive) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const rect = e.currentTarget.getBoundingClientRect();
+        const after = e.clientY - rect.top > rect.height / 2;
+        onHover(after ? index + 1 : index);
+      }}
+      onDrop={e => { e.preventDefault(); onDropAt(); }}
+    >
       <div style={s.tileHeader} onClick={() => onToggle(note.name)}>
+        <span
+          style={s.dragHandle}
+          className="note-drag-handle"
+          title="Drag to reorder"
+          draggable
+          onClick={e => e.stopPropagation()}
+          onDragStart={e => onDragStart(e, note.name)}
+          onDragEnd={onDragEnd}
+        >
+          ⠿
+        </span>
         <span style={{ ...s.tileChevron, transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>▸</span>
         <span style={s.noteIcon}>📄</span>
         <span style={{ flex: 1, fontWeight: expanded ? 600 : 400 }}>
@@ -257,12 +332,21 @@ function ExpandableNote({ note, title, expanded, onToggle, onLoad, onSave, delet
 
 // ── Note list ───────────────────────────────────────────────────────────────
 
-function NoteList({ notebook, notes, loading, onNewNote, onDeleteNote, syncing, syncProgress, metadata, onLoadNote, onSaveNote }) {
+function NoteList({ notebook, notes, loading, onNewNote, onDeleteNote, syncing, syncProgress, metadata, onLoadNote, onSaveNote, onReorder }) {
   const [confirmingDelete, setConfirmingDelete] = useState(null);
   const [expanded, setExpanded] = useState(() => new Set());
+  const [dragName, setDragName] = useState(null);
+  const [dropIndex, setDropIndex] = useState(null); // insertion slot: 0..N
 
   // Collapse everything when switching notebooks.
-  useEffect(() => { setExpanded(new Set()); setConfirmingDelete(null); }, [notebook.name]);
+  useEffect(() => {
+    setExpanded(new Set());
+    setConfirmingDelete(null);
+    setDragName(null);
+    setDropIndex(null);
+  }, [notebook.name]);
+
+  const orderedNotes = orderNotes(notes, metadata?.order);
 
   const toggle = (name) => {
     setExpanded(prev => {
@@ -271,6 +355,42 @@ function NoteList({ notebook, notes, loading, onNewNote, onDeleteNote, syncing, 
       return next;
     });
   };
+
+  const handleDragStart = (e, name) => {
+    setDragName(name);
+    e.dataTransfer.effectAllowed = 'move';
+    // Firefox requires data to be set for a drag to start.
+    try { e.dataTransfer.setData('text/plain', name); } catch {}
+  };
+
+  const hover = (idx) => { setDropIndex(prev => (prev === idx ? prev : idx)); };
+
+  const commitDrop = () => {
+    if (dragName != null && dropIndex != null) {
+      const currentOrder = orderedNotes.map(n => n.name);
+      const newOrder = moveToIndex(currentOrder, dragName, dropIndex);
+      if (newOrder.join('\n') !== currentOrder.join('\n')) onReorder(newOrder);
+    }
+    setDragName(null);
+    setDropIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDragName(null);
+    setDropIndex(null);
+  };
+
+  // A thin insertion line shown between/around tiles while dragging. It is also
+  // a drop target, so the gaps (top, between, bottom) are all droppable.
+  const renderSeparator = (slot) => (
+    <div
+      style={s.dropSeparator}
+      onDragOver={e => { if (dragName != null) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; hover(slot); } }}
+      onDrop={e => { e.preventDefault(); commitDrop(); }}
+    >
+      <div style={{ ...s.dropSeparatorLine, ...(dropIndex === slot ? s.dropSeparatorLineActive : {}) }} />
+    </div>
+  );
 
   const handleDeleteClick = (e, note) => {
     e.stopPropagation();
@@ -307,7 +427,7 @@ function NoteList({ notebook, notes, loading, onNewNote, onDeleteNote, syncing, 
         {!loading && notes.length === 0 && (
           <div style={s.hint}>No notes yet. Create your first one.</div>
         )}
-        {notes.map(note => {
+        {orderedNotes.map((note, i) => {
           const title = metadata?.titles?.[note.name] || note.name.replace(/\.mdx?$/, '');
           const deleteSlot = confirmingDelete === note.name ? (
             <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }} onClick={e => e.stopPropagation()}>
@@ -321,18 +441,28 @@ function NoteList({ notebook, notes, loading, onNewNote, onDeleteNote, syncing, 
             </button>
           );
           return (
-            <ExpandableNote
-              key={note.name}
-              note={note}
-              title={title}
-              expanded={expanded.has(note.name)}
-              onToggle={toggle}
-              onLoad={onLoadNote}
-              onSave={onSaveNote}
-              deleteSlot={deleteSlot}
-            />
+            <React.Fragment key={note.name}>
+              {renderSeparator(i)}
+              <ExpandableNote
+                note={note}
+                title={title}
+                expanded={expanded.has(note.name)}
+                onToggle={toggle}
+                onLoad={onLoadNote}
+                onSave={onSaveNote}
+                deleteSlot={deleteSlot}
+                index={i}
+                onDragStart={handleDragStart}
+                onHover={hover}
+                onDropAt={commitDrop}
+                onDragEnd={handleDragEnd}
+                dragging={dragName === note.name}
+                dragActive={dragName != null}
+              />
+            </React.Fragment>
           );
         })}
+        {orderedNotes.length > 0 && renderSeparator(orderedNotes.length)}
       </div>
     </div>
   );
@@ -607,7 +737,7 @@ export default function NotebookPage() {
   const [syncProgress, setSyncProgress] = useState(0);
   const [saveModal, setSaveModal] = useState({ open: false, step: 'idle', progress: 0, error: null });
   const [conflictBanner, setConflictBanner] = useState(false);
-  const [notebookMetadata, setNotebookMetadata] = useState({ titles: {}, sha: null });
+  const [notebookMetadata, setNotebookMetadata] = useState({ titles: {}, order: [], sha: null });
   const [refreshing, setRefreshing] = useState(false);
   const [refreshProgress, setRefreshProgress] = useState(0);
   const [loadingNote, setLoadingNote] = useState(null);
@@ -669,18 +799,18 @@ export default function NotebookPage() {
       );
       if (res.ok) {
         const data = await res.json();
-        const titles = JSON.parse(b64Decode(data.content));
-        setNotebookMetadata({ titles, sha: data.sha });
+        const { titles, order } = parseMetadata(JSON.parse(b64Decode(data.content)));
+        setNotebookMetadata({ titles, order, sha: data.sha });
         return;
       }
     } catch {}
-    setNotebookMetadata({ titles: {}, sha: null });
+    setNotebookMetadata({ titles: {}, order: [], sha: null });
   }, [authHeaders]);
 
-  const pushMetadataUpdate = useCallback(async (notebook, newTitles, currentSha) => {
+  const pushMetadataUpdate = useCallback(async (notebook, newTitles, newOrder, currentSha) => {
     const body = {
       message: 'chore: update note metadata',
-      content: b64Encode(JSON.stringify(newTitles, null, 2)),
+      content: b64Encode(serializeMetadata(newTitles, newOrder)),
       branch: BRANCH,
     };
     if (currentSha) body.sha = currentSha;
@@ -747,7 +877,7 @@ export default function NotebookPage() {
     setSelectedNotebook(nb);
     setView('list');
     setStatus('');
-    setNotebookMetadata({ titles: {}, sha: null });
+    setNotebookMetadata({ titles: {}, order: [], sha: null });
     fetchNotes(nb);
     fetchMetadata(nb);
   };
@@ -796,7 +926,7 @@ export default function NotebookPage() {
             setNotebooks(allNotebooks);
             setSelectedNotebook(newNb);
             setView('list');
-            setNotebookMetadata({ titles: {}, sha: null });
+            setNotebookMetadata({ titles: {}, order: [], sha: null });
             fetchNotes(newNb);
             fetchMetadata(newNb);
             setNotebookModal({ open: true, step: 'done', error: null });
@@ -829,8 +959,9 @@ export default function NotebookPage() {
       if (res.ok) {
         const newTitles = { ...notebookMetadata.titles };
         delete newTitles[note.name];
-        const newMetaSha = await pushMetadataUpdate(selectedNotebook, newTitles, notebookMetadata.sha);
-        setNotebookMetadata({ titles: newTitles, sha: newMetaSha });
+        const newOrder = notebookMetadata.order.filter(n => n !== note.name);
+        const newMetaSha = await pushMetadataUpdate(selectedNotebook, newTitles, newOrder, notebookMetadata.sha);
+        setNotebookMetadata({ titles: newTitles, order: newOrder, sha: newMetaSha });
         startSyncPoll(note.name, selectedNotebook, 'gone');
       } else {
         const err = await res.json();
@@ -864,10 +995,11 @@ export default function NotebookPage() {
         );
         if (res.ok) {
           const data = await res.json();
-          freshTitles = JSON.parse(b64Decode(data.content));
-          setNotebookMetadata({ titles: freshTitles, sha: data.sha });
+          const parsed = parseMetadata(JSON.parse(b64Decode(data.content)));
+          freshTitles = parsed.titles;
+          setNotebookMetadata({ titles: parsed.titles, order: parsed.order, sha: data.sha });
         } else {
-          setNotebookMetadata({ titles: {}, sha: null });
+          setNotebookMetadata({ titles: {}, order: [], sha: null });
         }
       } catch {}
     }
@@ -962,12 +1094,25 @@ export default function NotebookPage() {
     }
     const resData = await res.json();
     const newSha = resData.content?.sha ?? sha;
-    // Keep the human-readable title in the notebook metadata.
+    // Keep the human-readable title in the notebook metadata; order is unchanged
+    // for an existing note, but make sure it's tracked in the order list.
     const newTitles = { ...notebookMetadata.titles, [note.name]: noteTitle };
-    const newMetaSha = await pushMetadataUpdate(selectedNotebook, newTitles, notebookMetadata.sha);
-    setNotebookMetadata({ titles: newTitles, sha: newMetaSha });
+    const newOrder = notebookMetadata.order.includes(note.name)
+      ? notebookMetadata.order
+      : [...notebookMetadata.order, note.name];
+    const newMetaSha = await pushMetadataUpdate(selectedNotebook, newTitles, newOrder, notebookMetadata.sha);
+    setNotebookMetadata({ titles: newTitles, order: newOrder, sha: newMetaSha });
     return newSha;
   }, [authHeaders, selectedNotebook, notebookMetadata, pushMetadataUpdate]);
+
+  // Persist a drag-and-drop reordering. Optimistically updates local state.
+  const reorderNotes = useCallback(async (newOrder) => {
+    setNotebookMetadata(prev => ({ ...prev, order: newOrder }));
+    const newMetaSha = await pushMetadataUpdate(
+      selectedNotebook, notebookMetadata.titles, newOrder, notebookMetadata.sha
+    );
+    setNotebookMetadata(prev => ({ ...prev, order: newOrder, sha: newMetaSha }));
+  }, [selectedNotebook, notebookMetadata, pushMetadataUpdate]);
 
   const saveNote = async (title, content) => {
     setConflictBanner(false);
@@ -1043,8 +1188,12 @@ export default function NotebookPage() {
     } catch {}
 
     const newTitles = { ...notebookMetadata.titles, [fileName]: noteTitle };
-    const newMetaSha = await pushMetadataUpdate(selectedNotebook, newTitles, notebookMetadata.sha);
-    setNotebookMetadata({ titles: newTitles, sha: newMetaSha });
+    // New notes go to the end of the list (never sorted alphabetically).
+    const newOrder = notebookMetadata.order.includes(fileName)
+      ? notebookMetadata.order
+      : [...notebookMetadata.order, fileName];
+    const newMetaSha = await pushMetadataUpdate(selectedNotebook, newTitles, newOrder, notebookMetadata.sha);
+    setNotebookMetadata({ titles: newTitles, order: newOrder, sha: newMetaSha });
 
     // ── Phase 2: poll file directly until SHA matches expected ─────────────
     setSaveModal({ open: true, step: 'syncing', progress: 50, error: null });
@@ -1179,6 +1328,7 @@ export default function NotebookPage() {
               metadata={notebookMetadata}
               onLoadNote={loadNoteContent}
               onSaveNote={saveNoteContent}
+              onReorder={reorderNotes}
               syncing={syncing}
               syncProgress={syncProgress}
             />
@@ -1342,7 +1492,6 @@ const s = {
     display: 'flex',
     flexDirection: 'column',
     width: '100%',
-    marginBottom: 8,
     border: '1px solid var(--ifm-color-emphasis-200)',
     borderRadius: 8,
     background: 'var(--ifm-background-surface-color)',
@@ -1355,6 +1504,39 @@ const s = {
   noteItemExpanded: {
     borderColor: 'var(--ifm-color-primary)',
     boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+  },
+  noteItemDragging: {
+    opacity: 0.4,
+  },
+  dropSeparator: {
+    height: 8,
+    position: 'relative',
+    flexShrink: 0,
+  },
+  dropSeparatorLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: '50%',
+    transform: 'translateY(-50%)',
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: 'transparent',
+    transition: 'background-color 0.1s ease',
+    pointerEvents: 'none',
+  },
+  dropSeparatorLineActive: {
+    backgroundColor: 'var(--ifm-color-primary)',
+    boxShadow: '0 0 0 1px var(--ifm-color-primary)',
+  },
+  dragHandle: {
+    cursor: 'grab',
+    color: 'var(--ifm-color-emphasis-400)',
+    fontSize: 16,
+    lineHeight: 1,
+    flexShrink: 0,
+    userSelect: 'none',
+    padding: '0 2px',
   },
   tileHeader: {
     display: 'flex',
