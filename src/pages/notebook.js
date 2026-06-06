@@ -125,10 +125,152 @@ function Sidebar({ notebooks, selected, onSelect, onNewNotebook, loading, onRefr
   );
 }
 
+// ── Expandable note tile (Jupyter-style inline expand/collapse) ───────────────
+
+function ExpandableNote({ note, title, expanded, onToggle, onLoad, onSave, deleteSlot }) {
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState('');
+  const [loaded, setLoaded] = useState(false);
+  const [content, setContent] = useState('');
+  const [baseContent, setBaseContent] = useState('');
+  const [sha, setSha] = useState(null);
+  const [editTitle, setEditTitle] = useState(title);
+  const [baseTitle, setBaseTitle] = useState(title);
+  const [renderMode, setRenderMode] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [justSaved, setJustSaved] = useState(false);
+
+  // Keep the title field in sync with metadata when the user hasn't edited it.
+  useEffect(() => {
+    setEditTitle(prev => (prev === baseTitle ? title : prev));
+    setBaseTitle(title);
+  }, [title]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Lazy-load the note body the first time the tile is expanded.
+  useEffect(() => {
+    if (!expanded || loaded || loading) return;
+    let cancelled = false;
+    setLoading(true);
+    setLoadError('');
+    onLoad(note)
+      .then(({ content: body, sha: fileSha }) => {
+        if (cancelled) return;
+        setContent(body);
+        setBaseContent(body);
+        setSha(fileSha);
+        setLoaded(true);
+      })
+      .catch(e => { if (!cancelled) setLoadError(e.message || 'Failed to load note.'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [expanded]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const isDirty = content !== baseContent || editTitle !== baseTitle;
+
+  const handleSave = async (e) => {
+    e?.stopPropagation();
+    setSaving(true);
+    setSaveError('');
+    try {
+      const newSha = await onSave(note, editTitle, content, sha);
+      setSha(newSha);
+      setBaseContent(content);
+      setBaseTitle(editTitle);
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 1500);
+    } catch (err) {
+      setSaveError(err.message || 'Save failed.');
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div style={{ ...s.noteItem, ...(expanded ? s.noteItemExpanded : {}) }} className="note-item-row">
+      <div style={s.tileHeader} onClick={() => onToggle(note.name)}>
+        <span style={{ ...s.tileChevron, transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>▸</span>
+        <span style={s.noteIcon}>📄</span>
+        <span style={{ flex: 1, fontWeight: expanded ? 600 : 400 }}>
+          {title || note.name.replace(/\.mdx?$/, '')}
+        </span>
+        {isDirty && <span style={s.unsavedBadge}><span style={s.unsavedDot} />unsaved</span>}
+        {deleteSlot}
+      </div>
+
+      {expanded && (
+        <div style={s.tileBody} onClick={e => e.stopPropagation()}>
+          {loading && <div style={s.hint}>Loading note…</div>}
+          {loadError && <div style={{ ...s.hint, color: '#e53e3e' }}>{loadError}</div>}
+          {loaded && (
+            <>
+              <div style={s.tileToolbar}>
+                <div style={s.segmented}>
+                  <button onClick={() => setRenderMode(false)} style={{ ...s.segment, ...(!renderMode ? s.segmentActive : {}) }}>✎ Edit</button>
+                  <button onClick={() => setRenderMode(true)} style={{ ...s.segment, ...(renderMode ? s.segmentActive : {}) }}>👁 Preview</button>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {saveError && <span style={{ fontSize: 12, color: '#e53e3e' }}>{saveError}</span>}
+                  <button
+                    onClick={handleSave}
+                    disabled={saving || !isDirty}
+                    style={{ ...s.btn, ...(isDirty ? s.btnPrimary : s.btnSaved) }}
+                  >
+                    {saving ? 'Saving…' : justSaved ? '✓ Saved' : isDirty ? 'Save' : '✓ Saved'}
+                  </button>
+                </div>
+              </div>
+              {renderMode ? (
+                <BrowserOnly fallback={<div style={s.tilePreview}>Loading preview…</div>}>
+                  {() => {
+                    const ReactMarkdown = require('react-markdown').default;
+                    return (
+                      <div style={s.tilePreview}>
+                        <h2 style={s.previewTitle}>{editTitle.trim() || 'Untitled'}</h2>
+                        <ReactMarkdown>{content}</ReactMarkdown>
+                      </div>
+                    );
+                  }}
+                </BrowserOnly>
+              ) : (
+                <>
+                  <input
+                    value={editTitle}
+                    onChange={e => setEditTitle(e.target.value)}
+                    placeholder="Note title"
+                    style={{ ...s.input, ...s.titleInput }}
+                  />
+                  <textarea
+                    value={content}
+                    onChange={e => setContent(e.target.value)}
+                    placeholder="Write your note in Markdown…"
+                    style={{ ...s.textarea, ...s.tileTextarea }}
+                  />
+                </>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Note list ───────────────────────────────────────────────────────────────
 
-function NoteList({ notebook, notes, loading, onNewNote, onOpenNote, onDeleteNote, syncing, syncProgress, metadata, loadingNote }) {
+function NoteList({ notebook, notes, loading, onNewNote, onDeleteNote, syncing, syncProgress, metadata, onLoadNote, onSaveNote }) {
   const [confirmingDelete, setConfirmingDelete] = useState(null);
+  const [expanded, setExpanded] = useState(() => new Set());
+
+  // Collapse everything when switching notebooks.
+  useEffect(() => { setExpanded(new Set()); setConfirmingDelete(null); }, [notebook.name]);
+
+  const toggle = (name) => {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name); else next.add(name);
+      return next;
+    });
+  };
 
   const handleDeleteClick = (e, note) => {
     e.stopPropagation();
@@ -166,31 +308,29 @@ function NoteList({ notebook, notes, loading, onNewNote, onOpenNote, onDeleteNot
           <div style={s.hint}>No notes yet. Create your first one.</div>
         )}
         {notes.map(note => {
-          const isLoading = loadingNote === note.name;
-          const isBlocked = !!loadingNote && !isLoading;
+          const title = metadata?.titles?.[note.name] || note.name.replace(/\.mdx?$/, '');
+          const deleteSlot = confirmingDelete === note.name ? (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }} onClick={e => e.stopPropagation()}>
+              <span style={{ color: 'var(--ifm-color-emphasis-600)' }}>Delete?</span>
+              <button onClick={e => handleConfirmDelete(e, note)} style={{ ...s.btn, ...s.btnDanger, padding: '3px 8px' }}>Yes</button>
+              <button onClick={handleCancelDelete} style={{ ...s.btn, ...s.btnGhost, padding: '3px 8px' }}>No</button>
+            </span>
+          ) : (
+            <button onClick={e => handleDeleteClick(e, note)} style={s.deleteBtn} className="note-delete-btn" title="Delete note">
+              🗑
+            </button>
+          );
           return (
-            <div key={note.name} style={{ ...s.noteItem, opacity: isBlocked ? 0.5 : 1 }} className="note-item-row">
-              <span style={s.noteIcon}>{isLoading ? '⟳' : '📄'}</span>
-              <span
-                onClick={() => !loadingNote && onOpenNote(note)}
-                style={{ flex: 1, cursor: loadingNote ? 'default' : 'pointer', color: isLoading ? 'var(--ifm-color-emphasis-500)' : undefined }}
-              >
-                {metadata?.titles?.[note.name] || note.name.replace(/\.mdx?$/, '')}
-              </span>
-              {isLoading ? (
-                <span style={{ fontSize: 11, color: 'var(--ifm-color-emphasis-500)' }}>Loading…</span>
-              ) : confirmingDelete === note.name ? (
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
-                  <span style={{ color: 'var(--ifm-color-emphasis-600)' }}>Delete?</span>
-                  <button onClick={e => handleConfirmDelete(e, note)} style={{ ...s.btn, ...s.btnDanger, padding: '3px 8px' }}>Yes</button>
-                  <button onClick={handleCancelDelete} style={{ ...s.btn, ...s.btnGhost, padding: '3px 8px' }}>No</button>
-                </span>
-              ) : (
-                <button onClick={e => !loadingNote && handleDeleteClick(e, note)} style={s.deleteBtn} className="note-delete-btn" title="Delete note">
-                  🗑
-                </button>
-              )}
-            </div>
+            <ExpandableNote
+              key={note.name}
+              note={note}
+              title={title}
+              expanded={expanded.has(note.name)}
+              onToggle={toggle}
+              onLoad={onLoadNote}
+              onSave={onSaveNote}
+              deleteSlot={deleteSlot}
+            />
           );
         })}
       </div>
@@ -788,6 +928,47 @@ export default function NotebookPage() {
     setLoadingNote(null);
   };
 
+  // ── Inline (Jupyter-style) load + save for the tiles view ────────────────
+  const loadNoteContent = useCallback(async (note) => {
+    const res = await fetch(
+      `${API}/${DOCS_PATH}/${selectedNotebook.name}/${note.name}?ref=${BRANCH}&_=${Date.now()}`,
+      { headers: authHeaders() }
+    );
+    if (!res.ok) throw new Error('Failed to load note.');
+    const data = await res.json();
+    const raw = b64Decode(data.content);
+    // Strip frontmatter (backwards compat with old saved notes)
+    const fmMatch = raw.match(/^---\n[\s\S]*?\n---\n?/);
+    const body = fmMatch ? raw.slice(fmMatch[0].length) : raw;
+    return { content: body, sha: data.sha };
+  }, [authHeaders, selectedNotebook]);
+
+  const saveNoteContent = useCallback(async (note, title, content, sha) => {
+    const noteTitle = title.trim() || 'untitled';
+    const filePath = `${DOCS_PATH}/${selectedNotebook.name}/${note.name}`;
+    const body = {
+      message: `Update: ${noteTitle}`,
+      content: b64Encode(content),
+      branch: BRANCH,
+    };
+    if (sha) body.sha = sha;
+    const res = await fetch(`${API}/${filePath}`, {
+      method: 'PUT', headers: authHeaders(), body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      let msg = 'Save failed.';
+      try { msg = (await res.json()).message; } catch {}
+      throw new Error(msg);
+    }
+    const resData = await res.json();
+    const newSha = resData.content?.sha ?? sha;
+    // Keep the human-readable title in the notebook metadata.
+    const newTitles = { ...notebookMetadata.titles, [note.name]: noteTitle };
+    const newMetaSha = await pushMetadataUpdate(selectedNotebook, newTitles, notebookMetadata.sha);
+    setNotebookMetadata({ titles: newTitles, sha: newMetaSha });
+    return newSha;
+  }, [authHeaders, selectedNotebook, notebookMetadata, pushMetadataUpdate]);
+
   const saveNote = async (title, content) => {
     setConflictBanner(false);
     setSaving(true);
@@ -994,10 +1175,10 @@ export default function NotebookPage() {
               notes={notes}
               loading={loadingNotes}
               onNewNote={openNewNote}
-              onOpenNote={openNote}
               onDeleteNote={deleteNote}
               metadata={notebookMetadata}
-              loadingNote={loadingNote}
+              onLoadNote={loadNoteContent}
+              onSaveNote={saveNoteContent}
               syncing={syncing}
               syncProgress={syncProgress}
             />
@@ -1159,19 +1340,59 @@ const s = {
   },
   noteItem: {
     display: 'flex',
-    alignItems: 'center',
-    gap: 10,
+    flexDirection: 'column',
     width: '100%',
-    padding: '12px 16px',
     marginBottom: 8,
     border: '1px solid var(--ifm-color-emphasis-200)',
     borderRadius: 8,
     background: 'var(--ifm-background-surface-color)',
-    cursor: 'pointer',
     fontSize: 14,
     color: 'var(--ifm-font-color-base)',
     textAlign: 'left',
-    transition: 'border-color 0.15s',
+    transition: 'border-color 0.15s, box-shadow 0.15s',
+    overflow: 'hidden',
+  },
+  noteItemExpanded: {
+    borderColor: 'var(--ifm-color-primary)',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+  },
+  tileHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    width: '100%',
+    padding: '12px 16px',
+    cursor: 'pointer',
+    boxSizing: 'border-box',
+  },
+  tileChevron: {
+    fontSize: 12,
+    color: 'var(--ifm-color-emphasis-500)',
+    flexShrink: 0,
+    transition: 'transform 0.18s ease',
+    display: 'inline-block',
+  },
+  tileBody: {
+    borderTop: '1px solid var(--ifm-color-emphasis-200)',
+    padding: '14px 16px',
+    cursor: 'default',
+    backgroundColor: 'var(--ifm-background-color)',
+  },
+  tileToolbar: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    gap: 8,
+  },
+  tilePreview: {
+    lineHeight: 1.7,
+    fontSize: 15,
+  },
+  tileTextarea: {
+    minHeight: 220,
+    maxHeight: 480,
+    flex: 'none',
   },
   noteIcon: { fontSize: 16, flexShrink: 0 },
   noteChevron: { color: 'var(--ifm-color-emphasis-400)', fontSize: 18 },
