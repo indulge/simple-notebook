@@ -1,0 +1,1 @@
+this is body of new note.
