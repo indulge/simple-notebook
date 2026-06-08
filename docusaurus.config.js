@@ -30,14 +30,18 @@ const config = {
     locales: ['en'],
   },
 
+  plugins: ['./plugins/notebook-snapshot'],
+
   presets: [
     [
       'classic',
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
+          routeBasePath: 'read',
           sidebarPath: './sidebars.js',
           editUrl: 'https://github.com/indulge/sachin-notebook/tree/main/',
+          showLastUpdateTime: true,
         },
         blog: false,
         theme: {
@@ -55,19 +59,7 @@ const config = {
       },
       navbar: {
         title: "Sachin's Notebook",
-        items: [
-          {
-            type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
-            position: 'left',
-            label: 'Show all notes',
-          },
-          {
-            to: '/notebook',
-            label: 'Write',
-            position: 'right',
-          },
-        ],
+        items: [],
       },
       prism: {
         theme: prismThemes.github,
