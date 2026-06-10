@@ -7,7 +7,9 @@ import BrowserOnly from '@docusaurus/BrowserOnly';
 import { s } from './styles';
 
 // Provided by the Docusaurus webpack/rspack runtime; type-only so it is erased.
-declare function require(name: string): { default: React.ComponentType<{ children: string }> };
+declare function require(name: string): {
+  default: React.ComponentType<{ children: string; remarkPlugins: unknown[] }>;
+};
 
 interface Props {
   title: string;
@@ -28,10 +30,11 @@ export default function MarkdownPreview({
     <BrowserOnly fallback={<div style={wrapperStyle}>Loading preview…</div>}>
       {() => {
         const ReactMarkdown = require('react-markdown').default;
+        const remarkGfm = require('remark-gfm').default;
         return (
           <div style={wrapperStyle}>
             {React.createElement(headingLevel, { style: s.previewTitle }, title.trim() || 'Untitled')}
-            <ReactMarkdown>{content}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
           </div>
         );
       }}
