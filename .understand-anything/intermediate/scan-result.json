@@ -1,0 +1,487 @@
+{
+  "name": "sachin-notebook",
+  "description": "A public notebook site for notes, tutorials, and references — mostly on AI, tooling, and software engineering — built with Docusaurus and deployed to GitHub Pages.",
+  "languages": [
+    "css",
+    "javascript",
+    "json",
+    "markdown",
+    "typescript",
+    "unknown",
+    "yaml"
+  ],
+  "frameworks": [
+    "Docusaurus",
+    "React",
+    "GitHub Actions"
+  ],
+  "files": [
+    {
+      "path": ".github/workflows/deploy.yml",
+      "language": "yaml",
+      "sizeLines": 45,
+      "fileCategory": "infra"
+    },
+    {
+      "path": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "sizeLines": 46,
+      "fileCategory": "code"
+    },
+    {
+      "path": "arch.md",
+      "language": "markdown",
+      "sizeLines": 295,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "build-git-backed-notebook.md",
+      "language": "markdown",
+      "sizeLines": 303,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "changelog.md",
+      "language": "markdown",
+      "sizeLines": 45,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "sizeLines": 63,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/ai-notes/_category_.json",
+      "language": "json",
+      "sizeLines": 3,
+      "fileCategory": "config"
+    },
+    {
+      "path": "docs/ai-notes/_metadata.json",
+      "language": "json",
+      "sizeLines": 13,
+      "fileCategory": "config"
+    },
+    {
+      "path": "docs/ai-notes/ai-concept-tracker-1780990448581.md",
+      "language": "markdown",
+      "sizeLines": 23,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/ai-notes/untitled-1780990513692.md",
+      "language": "markdown",
+      "sizeLines": 810,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/claude-notes/_category_.json",
+      "language": "json",
+      "sizeLines": 4,
+      "fileCategory": "config"
+    },
+    {
+      "path": "docs/claude-notes/_metadata.json",
+      "language": "json",
+      "sizeLines": 2,
+      "fileCategory": "config"
+    },
+    {
+      "path": "docs/claude-notes/claude-workshop-1.md",
+      "language": "markdown",
+      "sizeLines": 810,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/claude-notes/claude-workshop-2.md",
+      "language": "markdown",
+      "sizeLines": 913,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/claude-notes/claude-workshop-3.md",
+      "language": "markdown",
+      "sizeLines": 817,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/claude-notes/claude-workshop-4.md",
+      "language": "markdown",
+      "sizeLines": 1062,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/inbox/_category_.json",
+      "language": "json",
+      "sizeLines": 3,
+      "fileCategory": "config"
+    },
+    {
+      "path": "docusaurus.config.js",
+      "language": "javascript",
+      "sizeLines": 98,
+      "fileCategory": "code"
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "sizeLines": 50,
+      "fileCategory": "config"
+    },
+    {
+      "path": "plugins/notebook-snapshot.js",
+      "language": "javascript",
+      "sizeLines": 18,
+      "fileCategory": "code"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 25,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "sidebars.js",
+      "language": "javascript",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/ErrorBoundary.tsx",
+      "language": "typescript",
+      "sizeLines": 109,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/notebook/DraftNote.tsx",
+      "language": "typescript",
+      "sizeLines": 97,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/notebook/EmptyState.tsx",
+      "language": "typescript",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/notebook/ExpandableNote.tsx",
+      "language": "typescript",
+      "sizeLines": 223,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/notebook/MarkdownPreview.tsx",
+      "language": "typescript",
+      "sizeLines": 59,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/notebook/MiniNotebookGrid.tsx",
+      "language": "typescript",
+      "sizeLines": 180,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/notebook/NewNotebookPanel.tsx",
+      "language": "typescript",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/notebook/NotebookModal.tsx",
+      "language": "typescript",
+      "sizeLines": 54,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/notebook/NoteEditor.tsx",
+      "language": "typescript",
+      "sizeLines": 374,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/notebook/NoteList.tsx",
+      "language": "typescript",
+      "sizeLines": 317,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/notebook/SaveModal.tsx",
+      "language": "typescript",
+      "sizeLines": 50,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/notebook/Sidebar.tsx",
+      "language": "typescript",
+      "sizeLines": 128,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/notebook/styles.ts",
+      "language": "typescript",
+      "sizeLines": 549,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/notebook/SyncDock.tsx",
+      "language": "typescript",
+      "sizeLines": 105,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/notebook/TokenGate.tsx",
+      "language": "typescript",
+      "sizeLines": 92,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/css/custom.css",
+      "language": "css",
+      "sizeLines": 290,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/docusaurus-env.d.ts",
+      "language": "typescript",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/hooks/useGitHubNotebook.ts",
+      "language": "typescript",
+      "sizeLines": 750,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/hooks/useNoteListInteractions.ts",
+      "language": "typescript",
+      "sizeLines": 138,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/hooks/useNotifications.tsx",
+      "language": "typescript",
+      "sizeLines": 124,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/hooks/useSaveLifecycle.ts",
+      "language": "typescript",
+      "sizeLines": 99,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/lib/notebooksFs.js",
+      "language": "javascript",
+      "sizeLines": 69,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/lib/notes.d.ts",
+      "language": "typescript",
+      "sizeLines": 42,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/lib/notes.js",
+      "language": "javascript",
+      "sizeLines": 103,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/homepage.js",
+      "language": "javascript",
+      "sizeLines": 174,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/index.js",
+      "language": "javascript",
+      "sizeLines": 9,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/index.module.css",
+      "language": "css",
+      "sizeLines": 129,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/pages/write.tsx",
+      "language": "typescript",
+      "sizeLines": 209,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/services/github.ts",
+      "language": "typescript",
+      "sizeLines": 329,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/types.ts",
+      "language": "typescript",
+      "sizeLines": 147,
+      "fileCategory": "code"
+    },
+    {
+      "path": "static/.nojekyll",
+      "language": "unknown",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tsconfig.json",
+      "language": "json",
+      "sizeLines": 12,
+      "fileCategory": "config"
+    }
+  ],
+  "totalFiles": 54,
+  "filteredByIgnore": 0,
+  "estimatedComplexity": "moderate",
+  "importMap": {
+    ".github/workflows/deploy.yml": [],
+    ".understand-anything/.understandignore": [],
+    "arch.md": [],
+    "build-git-backed-notebook.md": [],
+    "changelog.md": [],
+    "CLAUDE.md": [],
+    "docs/ai-notes/_category_.json": [],
+    "docs/ai-notes/_metadata.json": [],
+    "docs/ai-notes/ai-concept-tracker-1780990448581.md": [],
+    "docs/ai-notes/untitled-1780990513692.md": [],
+    "docs/claude-notes/_category_.json": [],
+    "docs/claude-notes/_metadata.json": [],
+    "docs/claude-notes/claude-workshop-1.md": [],
+    "docs/claude-notes/claude-workshop-2.md": [],
+    "docs/claude-notes/claude-workshop-3.md": [],
+    "docs/claude-notes/claude-workshop-4.md": [],
+    "docs/inbox/_category_.json": [],
+    "docusaurus.config.js": [],
+    "package.json": [],
+    "plugins/notebook-snapshot.js": [
+      "src/lib/notebooksFs.js"
+    ],
+    "README.md": [],
+    "sidebars.js": [
+      "src/lib/notebooksFs.js"
+    ],
+    "src/components/ErrorBoundary.tsx": [],
+    "src/components/notebook/DraftNote.tsx": [
+      "src/components/notebook/MarkdownPreview.tsx",
+      "src/components/notebook/styles.ts",
+      "src/hooks/useSaveLifecycle.ts"
+    ],
+    "src/components/notebook/EmptyState.tsx": [
+      "src/components/notebook/styles.ts"
+    ],
+    "src/components/notebook/ExpandableNote.tsx": [
+      "src/components/notebook/MarkdownPreview.tsx",
+      "src/components/notebook/styles.ts",
+      "src/hooks/useSaveLifecycle.ts",
+      "src/lib/notes.js",
+      "src/types.ts"
+    ],
+    "src/components/notebook/MarkdownPreview.tsx": [
+      "src/components/notebook/styles.ts",
+      "src/lib/notes.js"
+    ],
+    "src/components/notebook/MiniNotebookGrid.tsx": [
+      "src/lib/notes.js",
+      "src/types.ts"
+    ],
+    "src/components/notebook/NewNotebookPanel.tsx": [
+      "src/components/notebook/styles.ts"
+    ],
+    "src/components/notebook/NotebookModal.tsx": [
+      "src/components/notebook/styles.ts",
+      "src/types.ts"
+    ],
+    "src/components/notebook/NoteEditor.tsx": [
+      "src/components/notebook/MarkdownPreview.tsx",
+      "src/components/notebook/styles.ts",
+      "src/hooks/useNotifications.tsx",
+      "src/lib/notes.js"
+    ],
+    "src/components/notebook/NoteList.tsx": [
+      "src/components/notebook/DraftNote.tsx",
+      "src/components/notebook/ExpandableNote.tsx",
+      "src/components/notebook/styles.ts",
+      "src/hooks/useNoteListInteractions.ts",
+      "src/lib/notes.js",
+      "src/types.ts"
+    ],
+    "src/components/notebook/SaveModal.tsx": [
+      "src/components/notebook/styles.ts",
+      "src/types.ts"
+    ],
+    "src/components/notebook/Sidebar.tsx": [
+      "src/components/notebook/styles.ts",
+      "src/types.ts"
+    ],
+    "src/components/notebook/styles.ts": [],
+    "src/components/notebook/SyncDock.tsx": [
+      "src/types.ts"
+    ],
+    "src/components/notebook/TokenGate.tsx": [
+      "src/components/notebook/styles.ts",
+      "src/services/github.ts"
+    ],
+    "src/css/custom.css": [],
+    "src/docusaurus-env.d.ts": [],
+    "src/hooks/useGitHubNotebook.ts": [
+      "src/hooks/useNotifications.tsx",
+      "src/lib/notes.js",
+      "src/services/github.ts",
+      "src/types.ts"
+    ],
+    "src/hooks/useNoteListInteractions.ts": [],
+    "src/hooks/useNotifications.tsx": [
+      "src/types.ts"
+    ],
+    "src/hooks/useSaveLifecycle.ts": [
+      "src/types.ts"
+    ],
+    "src/lib/notebooksFs.js": [
+      "src/lib/notes.js"
+    ],
+    "src/lib/notes.d.ts": [
+      "src/types.ts"
+    ],
+    "src/lib/notes.js": [],
+    "src/pages/homepage.js": [
+      "src/lib/notes.js",
+      "src/pages/index.module.css"
+    ],
+    "src/pages/index.js": [],
+    "src/pages/index.module.css": [],
+    "src/pages/write.tsx": [
+      "src/components/ErrorBoundary.tsx",
+      "src/components/notebook/EmptyState.tsx",
+      "src/components/notebook/MiniNotebookGrid.tsx",
+      "src/components/notebook/NewNotebookPanel.tsx",
+      "src/components/notebook/NotebookModal.tsx",
+      "src/components/notebook/NoteEditor.tsx",
+      "src/components/notebook/NoteList.tsx",
+      "src/components/notebook/SaveModal.tsx",
+      "src/components/notebook/Sidebar.tsx",
+      "src/components/notebook/styles.ts",
+      "src/components/notebook/SyncDock.tsx",
+      "src/components/notebook/TokenGate.tsx",
+      "src/hooks/useGitHubNotebook.ts",
+      "src/hooks/useNotifications.tsx"
+    ],
+    "src/services/github.ts": [
+      "src/lib/notes.js",
+      "src/types.ts"
+    ],
+    "src/types.ts": [],
+    "static/.nojekyll": [],
+    "tsconfig.json": []
+  }
+}

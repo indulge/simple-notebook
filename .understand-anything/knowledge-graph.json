@@ -1,0 +1,2789 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "sachin-notebook",
+    "languages": [
+      "TypeScript",
+      "JavaScript",
+      "CSS",
+      "Markdown",
+      "YAML",
+      "JSON"
+    ],
+    "frameworks": [
+      "Docusaurus 3",
+      "React 19",
+      "GitHub Actions"
+    ],
+    "description": "A personal notebook site built with Docusaurus 3, featuring a git-backed notebook workspace for writing and publishing notes to GitHub Pages.",
+    "analyzedAt": "2026-06-18T20:38:33.812305+00:00",
+    "gitCommitHash": "5de34af927edd4837d3673bf805f866b10c6d88f"
+  },
+  "nodes": [
+    {
+      "id": "file:src/components/ErrorBoundary.tsx",
+      "type": "file",
+      "name": "ErrorBoundary.tsx",
+      "filePath": "src/components/ErrorBoundary.tsx",
+      "summary": "React class-based error boundary that catches synchronous render errors in the notebook workspace and displays a recoverable fallback UI instead of a blank screen.",
+      "tags": [
+        "component",
+        "error-handler",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/components/ErrorBoundary.tsx:ErrorBoundary",
+      "type": "class",
+      "name": "ErrorBoundary",
+      "filePath": "src/components/ErrorBoundary.tsx",
+      "lineRange": [
+        19,
+        61
+      ],
+      "summary": "React.Component subclass implementing getDerivedStateFromError and componentDidCatch to intercept render-time throws and show a 'Try again / Reload' fallback card.",
+      "tags": [
+        "component",
+        "error-handler",
+        "class"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/components/notebook/EmptyState.tsx",
+      "type": "file",
+      "name": "EmptyState.tsx",
+      "filePath": "src/components/notebook/EmptyState.tsx",
+      "summary": "Simple presentational component that renders a placeholder message when no notebook is selected in the sidebar.",
+      "tags": [
+        "component",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:src/components/notebook/EmptyState.tsx:EmptyState",
+      "type": "function",
+      "name": "EmptyState",
+      "filePath": "src/components/notebook/EmptyState.tsx",
+      "lineRange": [
+        6,
+        19
+      ],
+      "summary": "Renders a centered empty-state card prompting the user to select or create a notebook.",
+      "tags": [
+        "component",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/notebook/NewNotebookPanel.tsx",
+      "type": "file",
+      "name": "NewNotebookPanel.tsx",
+      "filePath": "src/components/notebook/NewNotebookPanel.tsx",
+      "summary": "Form panel for creating a new notebook, capturing the notebook name and delegating creation to a parent-supplied callback with saving/status feedback.",
+      "tags": [
+        "component",
+        "form",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:src/components/notebook/NewNotebookPanel.tsx:NewNotebookPanel",
+      "type": "function",
+      "name": "NewNotebookPanel",
+      "filePath": "src/components/notebook/NewNotebookPanel.tsx",
+      "lineRange": [
+        11,
+        45
+      ],
+      "summary": "Controlled input panel that collects a notebook name and calls onCreate on submit or keyboard Enter; shows a saving indicator while the operation is in progress.",
+      "tags": [
+        "component",
+        "form"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/notebook/NotebookModal.tsx",
+      "type": "file",
+      "name": "NotebookModal.tsx",
+      "filePath": "src/components/notebook/NotebookModal.tsx",
+      "summary": "Modal overlay that displays the progress of a notebook creation operation, cycling through creating, syncing, done, and error steps.",
+      "tags": [
+        "component",
+        "modal",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:src/components/notebook/NotebookModal.tsx:NotebookModal",
+      "type": "function",
+      "name": "NotebookModal",
+      "filePath": "src/components/notebook/NotebookModal.tsx",
+      "lineRange": [
+        21,
+        54
+      ],
+      "summary": "Renders a step-driven modal card for notebook creation lifecycle, mapping NotebookModalStep values to status labels and closing on completion.",
+      "tags": [
+        "component",
+        "modal"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/notebook/SaveModal.tsx",
+      "type": "file",
+      "name": "SaveModal.tsx",
+      "filePath": "src/components/notebook/SaveModal.tsx",
+      "summary": "Modal overlay that tracks the multi-step save/sync lifecycle (pushing, syncing, done, error) with a progress indicator for note persistence operations.",
+      "tags": [
+        "component",
+        "modal",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:src/components/notebook/SaveModal.tsx:SaveModal",
+      "type": "function",
+      "name": "SaveModal",
+      "filePath": "src/components/notebook/SaveModal.tsx",
+      "lineRange": [
+        22,
+        50
+      ],
+      "summary": "Renders a step-driven modal card for note save lifecycle, showing a progress bar during push/sync and an error message on failure.",
+      "tags": [
+        "component",
+        "modal"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/notebook/Sidebar.tsx",
+      "type": "file",
+      "name": "Sidebar.tsx",
+      "filePath": "src/components/notebook/Sidebar.tsx",
+      "summary": "Navigation sidebar listing notebooks with selection, creation, deletion (with inline confirmation), refresh, and loading-state support.",
+      "tags": [
+        "component",
+        "navigation",
+        "sidebar"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/components/notebook/Sidebar.tsx:Sidebar",
+      "type": "function",
+      "name": "Sidebar",
+      "filePath": "src/components/notebook/Sidebar.tsx",
+      "lineRange": [
+        17,
+        126
+      ],
+      "summary": "Renders the notebook list sidebar with per-item delete confirmation state, refresh button, and empty/loading placeholders, wiring all actions to parent callbacks.",
+      "tags": [
+        "component",
+        "navigation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/components/notebook/SyncDock.tsx",
+      "type": "file",
+      "name": "SyncDock.tsx",
+      "filePath": "src/components/notebook/SyncDock.tsx",
+      "summary": "Persistent dock bar showing real-time sync/save/deploy status badges and a link to the live GitHub Pages deployment after a successful save.",
+      "tags": [
+        "component",
+        "status-indicator",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/components/notebook/SyncDock.tsx:SyncDock",
+      "type": "function",
+      "name": "SyncDock",
+      "filePath": "src/components/notebook/SyncDock.tsx",
+      "lineRange": [
+        27,
+        70
+      ],
+      "summary": "Renders a bottom-anchored dock with animated status pills for saving, syncing, refreshing, and deploy state, linking to the deployed site URL when live.",
+      "tags": [
+        "component",
+        "status-indicator"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/components/notebook/styles.ts",
+      "type": "file",
+      "name": "styles.ts",
+      "filePath": "src/components/notebook/styles.ts",
+      "summary": "Centralized inline-style object for all notebook workspace components, exporting a single `s` record of named CSSProperties so every panel, modal, and tile shares one source of truth.",
+      "tags": [
+        "utility",
+        "style",
+        "configuration"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Uses React CSSProperties type for all style entries, enabling IDE type-checking on CSS property names and values."
+    },
+    {
+      "id": "file:src/lib/notes.d.ts",
+      "type": "file",
+      "name": "notes.d.ts",
+      "filePath": "src/lib/notes.d.ts",
+      "summary": "Ambient TypeScript declaration file providing typed signatures for the pure-helper JavaScript module `notes.js`, including repo constants and utility functions for notes metadata and ordering.",
+      "tags": [
+        "type-definition",
+        "utility",
+        "declaration"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Declared as a .d.ts ambient module because notes.js must remain JavaScript to be consumed by the Node build chain (sidebars.js, snapshot plugin) which cannot resolve .ts files."
+    },
+    {
+      "id": "file:src/pages/write.tsx",
+      "type": "file",
+      "name": "write.tsx",
+      "filePath": "src/pages/write.tsx",
+      "summary": "Main notebook workspace page that composes all sub-components, manages the GitHub PAT auth token in localStorage, and wires the useGitHubNotebook hook to the sidebar, editor, modals, and sync dock.",
+      "tags": [
+        "entry-point",
+        "component",
+        "api-handler"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/pages/write.tsx:Workspace",
+      "type": "function",
+      "name": "Workspace",
+      "filePath": "src/pages/write.tsx",
+      "lineRange": [
+        27,
+        196
+      ],
+      "summary": "Core workspace component that owns the auth token state, hydrates it from localStorage, handles quick-capture URL param, and renders the full notebook layout including sidebar, editor, modals, and sync dock.",
+      "tags": [
+        "component",
+        "entry-point"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/pages/write.tsx:NotebookPage",
+      "type": "function",
+      "name": "NotebookPage",
+      "filePath": "src/pages/write.tsx",
+      "lineRange": [
+        198,
+        209
+      ],
+      "summary": "Default Docusaurus page export that wraps Workspace in a Layout, NotificationProvider, and top-level ErrorBoundary.",
+      "tags": [
+        "entry-point",
+        "component"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/types.ts",
+      "type": "file",
+      "name": "types.ts",
+      "filePath": "src/types.ts",
+      "summary": "Central TypeScript type definitions for the notebook write app, covering GitHub Contents API shapes, domain models (notebooks, notes, metadata), and UI lifecycle state types for modals and the save flow.",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "utility"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Organized into three sections: GitHub API shapes, domain models, and UI/editor lifecycle \u2014 enabling type-safe contracts across the service, hook, and component layers."
+    },
+    {
+      "id": "file:src/components/notebook/MiniNotebookGrid.tsx",
+      "type": "file",
+      "name": "MiniNotebookGrid.tsx",
+      "filePath": "src/components/notebook/MiniNotebookGrid.tsx",
+      "summary": "React component that renders a compact grid of notebook note cards with drag-and-drop support, sorted by update time, and an expandable detail popup for each note.",
+      "tags": [
+        "component",
+        "ui",
+        "notebook"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/components/notebook/MiniNotebookGrid.tsx:MiniNotebookGrid",
+      "type": "function",
+      "name": "MiniNotebookGrid",
+      "filePath": "src/components/notebook/MiniNotebookGrid.tsx",
+      "lineRange": [
+        21,
+        84
+      ],
+      "summary": "Default-exported React component that displays a sortable, draggable grid of note cards within a notebook; handles click-to-open and drag events.",
+      "tags": [
+        "component",
+        "ui",
+        "notebook"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/components/notebook/NoteEditor.tsx",
+      "type": "file",
+      "name": "NoteEditor.tsx",
+      "filePath": "src/components/notebook/NoteEditor.tsx",
+      "summary": "Full-featured markdown note editor component with draft recovery via localStorage, image paste/drop upload, Cmd+S save shortcut, and a split edit/preview/split view mode.",
+      "tags": [
+        "component",
+        "editor",
+        "markdown"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/components/notebook/NoteEditor.tsx:NoteEditor",
+      "type": "function",
+      "name": "NoteEditor",
+      "filePath": "src/components/notebook/NoteEditor.tsx",
+      "lineRange": [
+        47,
+        374
+      ],
+      "summary": "Primary editor component managing title/content state, draft persistence with debounced localStorage writes, image upload on paste/drop, keyboard shortcuts, discard confirmation, and conflict banner rendering.",
+      "tags": [
+        "component",
+        "editor",
+        "event-handler"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/components/notebook/NoteEditor.tsx:readDraft",
+      "type": "function",
+      "name": "readDraft",
+      "filePath": "src/components/notebook/NoteEditor.tsx",
+      "lineRange": [
+        35,
+        45
+      ],
+      "summary": "Reads a JSON draft object from localStorage by key, returning null on parse failure or missing key.",
+      "tags": [
+        "utility",
+        "storage"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/notebook/TokenGate.tsx",
+      "type": "file",
+      "name": "TokenGate.tsx",
+      "filePath": "src/components/notebook/TokenGate.tsx",
+      "summary": "Authentication gate component that prompts users to enter a GitHub Personal Access Token, validates it against the GitHub API, and stores it in localStorage on success.",
+      "tags": [
+        "component",
+        "authentication",
+        "security"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/components/notebook/TokenGate.tsx:TokenGate",
+      "type": "function",
+      "name": "TokenGate",
+      "filePath": "src/components/notebook/TokenGate.tsx",
+      "lineRange": [
+        14,
+        92
+      ],
+      "summary": "React component rendering a PAT input form, calling the GitHub API to verify the token, persisting valid tokens to localStorage, and displaying error states.",
+      "tags": [
+        "component",
+        "authentication",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/hooks/useGitHubNotebook.ts",
+      "type": "file",
+      "name": "useGitHubNotebook.ts",
+      "filePath": "src/hooks/useGitHubNotebook.ts",
+      "summary": "Central React hook that orchestrates all notebook operations \u2014 listing, creating, editing, deleting, reordering, and saving notes via the GitHub API \u2014 along with deploy-status polling and sync progress tracking.",
+      "tags": [
+        "hook",
+        "service",
+        "notebook"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/hooks/useGitHubNotebook.ts:useGitHubNotebook",
+      "type": "function",
+      "name": "useGitHubNotebook",
+      "filePath": "src/hooks/useGitHubNotebook.ts",
+      "lineRange": [
+        36,
+        748
+      ],
+      "summary": "Named-exported custom hook accepting a PAT, wrapping a GitHubNotebookClient instance, and exposing callbacks for all CRUD operations on notebooks and notes, with integrated deploy-poll, sync-poll, and notification support.",
+      "tags": [
+        "hook",
+        "service",
+        "api-handler"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/hooks/useNotifications.tsx",
+      "type": "file",
+      "name": "useNotifications.tsx",
+      "filePath": "src/hooks/useNotifications.tsx",
+      "summary": "Provides a React context, provider component, and hook for displaying ephemeral toast notifications with auto-dismiss.",
+      "tags": [
+        "hook",
+        "component",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/hooks/useNotifications.tsx:NotificationProvider",
+      "type": "function",
+      "name": "NotificationProvider",
+      "filePath": "src/hooks/useNotifications.tsx",
+      "lineRange": [
+        29,
+        65
+      ],
+      "summary": "Context provider that manages a list of toast notifications, exposing notify/dismiss callbacks and rendering toast UI children.",
+      "tags": [
+        "component",
+        "context",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/hooks/useNotifications.tsx:useNotifications",
+      "type": "function",
+      "name": "useNotifications",
+      "filePath": "src/hooks/useNotifications.tsx",
+      "lineRange": [
+        71,
+        73
+      ],
+      "summary": "Consumer hook that retrieves the notification context value, giving components access to the notify function.",
+      "tags": [
+        "hook",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/lib/notes.js",
+      "type": "file",
+      "name": "notes.js",
+      "filePath": "src/lib/notes.js",
+      "summary": "Shared utility library exporting GitHub repo constants and pure helper functions for slugification, base64 encoding/decoding, note metadata serialization, timestamp formatting, and note ordering.",
+      "tags": [
+        "utility",
+        "serialization",
+        "configuration"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/lib/notes.js:parseMetadata",
+      "type": "function",
+      "name": "parseMetadata",
+      "filePath": "src/lib/notes.js",
+      "lineRange": [
+        40,
+        50
+      ],
+      "summary": "Parses a raw metadata object from the GitHub repo, normalizing the order array and titles map into a consistent internal shape.",
+      "tags": [
+        "utility",
+        "serialization"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:src/lib/notes.js:orderNotes",
+      "type": "function",
+      "name": "orderNotes",
+      "filePath": "src/lib/notes.js",
+      "lineRange": [
+        79,
+        91
+      ],
+      "summary": "Returns a new array of note objects sorted according to the stored metadata order array, appending any notes not yet in the order list.",
+      "tags": [
+        "utility",
+        "sorting"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:src/lib/notes.js:moveToIndex",
+      "type": "function",
+      "name": "moveToIndex",
+      "filePath": "src/lib/notes.js",
+      "lineRange": [
+        95,
+        103
+      ],
+      "summary": "Removes an item from its current position in an array and inserts it at the specified index, returning the reordered array.",
+      "tags": [
+        "utility",
+        "sorting"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:src/lib/notes.js:formatTimestamp",
+      "type": "function",
+      "name": "formatTimestamp",
+      "filePath": "src/lib/notes.js",
+      "lineRange": [
+        65,
+        75
+      ],
+      "summary": "Converts a Unix millisecond timestamp to a locale-aware human-readable date/time string.",
+      "tags": [
+        "utility",
+        "formatting"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/pages/homepage.js",
+      "type": "file",
+      "name": "homepage.js",
+      "filePath": "src/pages/homepage.js",
+      "summary": "Docusaurus home page component that fetches live notebook data from the GitHub API at render time, merges it with build-time snapshot data from the Docusaurus plugin, and renders a searchable notebook grid.",
+      "tags": [
+        "component",
+        "entry-point",
+        "ui"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/pages/homepage.js:Home",
+      "type": "function",
+      "name": "Home",
+      "filePath": "src/pages/homepage.js",
+      "lineRange": [
+        65,
+        174
+      ],
+      "summary": "Default-exported page component that blends build-time snapshot notebooks with live-fetched data, implements search, and renders the full homepage layout.",
+      "tags": [
+        "component",
+        "entry-point",
+        "ui"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/pages/homepage.js:fetchLiveNotebooks",
+      "type": "function",
+      "name": "fetchLiveNotebooks",
+      "filePath": "src/pages/homepage.js",
+      "lineRange": [
+        42,
+        61
+      ],
+      "summary": "Fetches all notebook directories and their notes from the GitHub raw API, enriches them with metadata and ordered note lists.",
+      "tags": [
+        "utility",
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/services/github.ts",
+      "type": "file",
+      "name": "github.ts",
+      "filePath": "src/services/github.ts",
+      "summary": "Provides the GitHubNotebookClient class and GitHubError class for all authenticated GitHub Contents API interactions: reading, writing, deleting notebook files and metadata, and querying deployment run status.",
+      "tags": [
+        "service",
+        "api-handler",
+        "serialization"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/services/github.ts:GitHubNotebookClient",
+      "type": "class",
+      "name": "GitHubNotebookClient",
+      "filePath": "src/services/github.ts",
+      "lineRange": [
+        74,
+        324
+      ],
+      "summary": "Core API client class that wraps the GitHub Contents and Actions REST APIs with typed methods for all notebook CRUD operations, metadata management, binary uploads, and deploy-run polling.",
+      "tags": [
+        "service",
+        "api-handler"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/services/github.ts:GitHubError",
+      "type": "class",
+      "name": "GitHubError",
+      "filePath": "src/services/github.ts",
+      "lineRange": [
+        50,
+        72
+      ],
+      "summary": "Custom error class wrapping GitHub API HTTP error responses, with helper properties for detecting conflict, auth, and rate-limit error types.",
+      "tags": [
+        "service",
+        "validation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:src/services/github.ts:createGitHubClient",
+      "type": "function",
+      "name": "createGitHubClient",
+      "filePath": "src/services/github.ts",
+      "lineRange": [
+        327,
+        329
+      ],
+      "summary": "Factory function that constructs and returns a new GitHubNotebookClient instance for a given PAT.",
+      "tags": [
+        "factory",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/notebook/DraftNote.tsx",
+      "type": "file",
+      "name": "DraftNote.tsx",
+      "filePath": "src/components/notebook/DraftNote.tsx",
+      "summary": "React component for composing a new note, providing title and content inputs with a toggle between edit and preview modes, and delegating save/discard lifecycle to the useSaveLifecycle hook.",
+      "tags": [
+        "component",
+        "notebook",
+        "form",
+        "entry-point"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/components/notebook/DraftNote.tsx:DraftNote",
+      "type": "function",
+      "name": "DraftNote",
+      "filePath": "src/components/notebook/DraftNote.tsx",
+      "lineRange": [
+        15,
+        97
+      ],
+      "summary": "Exported default React component that renders a draft note editor with title/content fields, edit/preview mode switching, and save/discard actions.",
+      "tags": [
+        "component",
+        "react",
+        "form"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/components/notebook/ExpandableNote.tsx",
+      "type": "file",
+      "name": "ExpandableNote.tsx",
+      "filePath": "src/components/notebook/ExpandableNote.tsx",
+      "summary": "React component representing a single notebook entry that supports expand/collapse, inline editing with edit/preview mode toggling, drag-and-drop reordering, and asynchronous save lifecycle management.",
+      "tags": [
+        "component",
+        "notebook",
+        "drag-and-drop",
+        "event-handler"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Uses a rich prop interface (17 props) with drag event handlers and async note load/save callbacks, reflecting a complex parent-controlled stateful component pattern."
+    },
+    {
+      "id": "function:src/components/notebook/ExpandableNote.tsx:ExpandableNote",
+      "type": "function",
+      "name": "ExpandableNote",
+      "filePath": "src/components/notebook/ExpandableNote.tsx",
+      "lineRange": [
+        32,
+        221
+      ],
+      "summary": "Core React component for a single note card: handles lazy content loading on expand, inline title/body editing with save, drag-and-drop reordering interactions, and delete slot rendering.",
+      "tags": [
+        "component",
+        "react",
+        "event-handler",
+        "async"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/components/notebook/MarkdownPreview.tsx",
+      "type": "file",
+      "name": "MarkdownPreview.tsx",
+      "filePath": "src/components/notebook/MarkdownPreview.tsx",
+      "summary": "Reusable React component that renders a note title as a configurable heading and its markdown body using react-markdown with GitHub Flavored Markdown and syntax highlighting plugins.",
+      "tags": [
+        "component",
+        "markdown",
+        "utility",
+        "notebook"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Dynamically requires remark-gfm and rehype-highlight inside the component body to avoid SSR issues common in Docusaurus environments."
+    },
+    {
+      "id": "function:src/components/notebook/MarkdownPreview.tsx:MarkdownPreview",
+      "type": "function",
+      "name": "MarkdownPreview",
+      "filePath": "src/components/notebook/MarkdownPreview.tsx",
+      "lineRange": [
+        29,
+        59
+      ],
+      "summary": "Exported default React component that renders note title as a heading and markdown content with GFM and syntax highlighting support.",
+      "tags": [
+        "component",
+        "markdown",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/notebook/NoteList.tsx",
+      "type": "file",
+      "name": "NoteList.tsx",
+      "filePath": "src/components/notebook/NoteList.tsx",
+      "summary": "Primary notebook UI component that renders an ordered list of notes with full drag-and-drop reordering, draft creation, deletion confirmation, cross-notebook move, and loading/syncing state indicators.",
+      "tags": [
+        "component",
+        "notebook",
+        "drag-and-drop",
+        "event-handler"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:src/components/notebook/NoteList.tsx:NoteList",
+      "type": "function",
+      "name": "NoteList",
+      "filePath": "src/components/notebook/NoteList.tsx",
+      "lineRange": [
+        41,
+        317
+      ],
+      "summary": "Exported default React component orchestrating the full note list UI: ordering via orderNotes, drag-and-drop via useNoteListInteractions, and rendering DraftNote and ExpandableNote sub-components.",
+      "tags": [
+        "component",
+        "react",
+        "orchestration",
+        "event-handler"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/hooks/useNoteListInteractions.ts",
+      "type": "file",
+      "name": "useNoteListInteractions.ts",
+      "filePath": "src/hooks/useNoteListInteractions.ts",
+      "summary": "Custom React hook that centralizes all UI interaction state for the note list \u2014 expand/collapse, drag index, drop index, hover, delete confirmation, and draft visibility \u2014 using useReducer for predictable state transitions.",
+      "tags": [
+        "hook",
+        "state-management",
+        "notebook",
+        "event-handler"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Uses a typed discriminated union action pattern with useReducer, providing a useMemo-wrapped action dispatcher interface to consumers."
+    },
+    {
+      "id": "function:src/hooks/useNoteListInteractions.ts:useNoteListInteractions",
+      "type": "function",
+      "name": "useNoteListInteractions",
+      "filePath": "src/hooks/useNoteListInteractions.ts",
+      "lineRange": [
+        107,
+        138
+      ],
+      "summary": "Exported hook that initializes list interaction state via useReducer and returns a stable memoized API object exposing all state values and dispatch-bound action handlers.",
+      "tags": [
+        "hook",
+        "state-management",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/hooks/useNoteListInteractions.ts:reducer",
+      "type": "function",
+      "name": "reducer",
+      "filePath": "src/hooks/useNoteListInteractions.ts",
+      "lineRange": [
+        54,
+        89
+      ],
+      "summary": "Pure reducer handling note list UI actions: toggle expand, drag start/end, hover, drop index, delete confirmation, and draft open/close.",
+      "tags": [
+        "state-management",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/hooks/useSaveLifecycle.ts",
+      "type": "file",
+      "name": "useSaveLifecycle.ts",
+      "filePath": "src/hooks/useSaveLifecycle.ts",
+      "summary": "Custom React hook managing the save state machine for notebook notes, tracking idle, saving, saved, and error states with an auto-clearing flash timeout for transient success/error messages.",
+      "tags": [
+        "hook",
+        "state-management",
+        "utility",
+        "notebook"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/hooks/useSaveLifecycle.ts:useSaveLifecycle",
+      "type": "function",
+      "name": "useSaveLifecycle",
+      "filePath": "src/hooks/useSaveLifecycle.ts",
+      "lineRange": [
+        56,
+        99
+      ],
+      "summary": "Exported hook returning a save state object and stable begin/succeed/fail/reset callbacks that transition through save lifecycle states with timeout-based flash clearing.",
+      "tags": [
+        "hook",
+        "state-management",
+        "react"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/hooks/useSaveLifecycle.ts:reducer",
+      "type": "function",
+      "name": "reducer",
+      "filePath": "src/hooks/useSaveLifecycle.ts",
+      "lineRange": [
+        28,
+        41
+      ],
+      "summary": "Pure reducer handling save state transitions: saving, saved (with flash), error, and reset actions.",
+      "tags": [
+        "state-management",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:plugins/notebook-snapshot.js",
+      "type": "file",
+      "name": "notebook-snapshot.js",
+      "filePath": "plugins/notebook-snapshot.js",
+      "summary": "Docusaurus local plugin that reads notebooks from disk at build time and exposes them as global plugin data, enabling SSR-friendly rendering and publishing badge comparisons on the home hub.",
+      "tags": [
+        "plugin",
+        "build-system",
+        "entry-point",
+        "service"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:plugins/notebook-snapshot.js:notebookSnapshotPlugin",
+      "type": "function",
+      "name": "notebookSnapshotPlugin",
+      "filePath": "plugins/notebook-snapshot.js",
+      "lineRange": [
+        8,
+        18
+      ],
+      "summary": "Docusaurus plugin factory that loads notebook data from disk during the build content phase and registers it as global data accessible to all pages.",
+      "tags": [
+        "plugin",
+        "factory",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:sidebars.js",
+      "type": "file",
+      "name": "sidebars.js",
+      "filePath": "sidebars.js",
+      "summary": "Docusaurus sidebar configuration that dynamically builds the tutorial sidebar from each notebook's metadata, preserving human-readable titles and custom drag-and-drop ordering instead of filename-based autogeneration.",
+      "tags": [
+        "configuration",
+        "build-system",
+        "docusaurus",
+        "entry-point"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:sidebars.js:buildTutorialSidebar",
+      "type": "function",
+      "name": "buildTutorialSidebar",
+      "filePath": "sidebars.js",
+      "lineRange": [
+        11,
+        30
+      ],
+      "summary": "Reads all notebooks from disk and constructs Docusaurus sidebar category entries with metadata-driven titles and ordering, falling back to autogeneration for notebooks without metadata.",
+      "tags": [
+        "configuration",
+        "utility",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/lib/notebooksFs.js",
+      "type": "file",
+      "name": "notebooksFs.js",
+      "filePath": "src/lib/notebooksFs.js",
+      "summary": "Node.js-only build-time library that walks the docs directory to produce a sorted, normalized list of notebooks and their notes, driven by each notebook's _category_.json and _metadata.json files.",
+      "tags": [
+        "utility",
+        "service",
+        "build-system",
+        "data-model"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:src/lib/notebooksFs.js:readNotebooksFromDisk",
+      "type": "function",
+      "name": "readNotebooksFromDisk",
+      "filePath": "src/lib/notebooksFs.js",
+      "lineRange": [
+        24,
+        69
+      ],
+      "summary": "Scans a docs directory, reads each notebook's category and metadata JSON files, applies metadata-driven ordering and titling, and returns a position-sorted array of notebook objects with their note details.",
+      "tags": [
+        "utility",
+        "service",
+        "data-model"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "pipeline:.github/workflows/deploy.yml",
+      "type": "pipeline",
+      "name": "deploy.yml",
+      "filePath": ".github/workflows/deploy.yml",
+      "summary": "GitHub Actions CI/CD workflow that builds the Docusaurus site with Node.js 22 and deploys it to GitHub Pages on every push to the main branch.",
+      "tags": [
+        "ci-cd",
+        "deployment",
+        "infrastructure",
+        "build-system",
+        "github-actions"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "step:.github/workflows/deploy.yml:build",
+      "type": "pipeline",
+      "name": "build",
+      "filePath": ".github/workflows/deploy.yml",
+      "summary": "Checks out the repository, sets up Node.js 22 with npm cache, runs npm ci and npm run build, then uploads the build artifact for GitHub Pages.",
+      "tags": [
+        "ci-cd",
+        "build-system",
+        "deployment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "step:.github/workflows/deploy.yml:deploy",
+      "type": "pipeline",
+      "name": "deploy",
+      "filePath": ".github/workflows/deploy.yml",
+      "summary": "Deploys the previously built artifact to GitHub Pages using the actions/deploy-pages action, running after the build job completes.",
+      "tags": [
+        "ci-cd",
+        "deployment",
+        "infrastructure"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:CLAUDE.md",
+      "type": "document",
+      "name": "CLAUDE.md",
+      "filePath": "CLAUDE.md",
+      "summary": "Claude Code project instructions covering repo purpose, local development commands, deployment workflow, content authoring conventions, and Claude Code extension points (tools, workflows, commands, skills, hooks).",
+      "tags": [
+        "documentation",
+        "development",
+        "configuration",
+        "entry-point"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "Top-level project README for Sachin's Notebook, covering local development setup, production build steps, and GitHub Pages deployment instructions.",
+      "tags": [
+        "documentation",
+        "entry-point",
+        "overview"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:arch.md",
+      "type": "document",
+      "name": "arch.md",
+      "filePath": "arch.md",
+      "summary": "Comprehensive architecture diagram document covering system overview, data flow sequences for saving and loading notes, shared utilities, note lifecycle state machine, build pipeline, layer map, and key design decisions for the git-backed notebook.",
+      "tags": [
+        "documentation",
+        "architecture",
+        "design"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:build-git-backed-notebook.md",
+      "type": "document",
+      "name": "build-git-backed-notebook.md",
+      "filePath": "build-git-backed-notebook.md",
+      "summary": "Detailed implementation guide for building the git-backed notebook feature, covering the full stack, architecture decisions, feature list with 11 features, prompts used during development, and an implementation blueprint with components and API patterns.",
+      "tags": [
+        "documentation",
+        "implementation-guide",
+        "architecture",
+        "design"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:changelog.md",
+      "type": "document",
+      "name": "changelog.md",
+      "filePath": "changelog.md",
+      "summary": "Changelog for the fable-test branch documenting 14 key features and fixes including editor modes, image upload, localStorage drafts, notebook management, quick capture, deploy watcher, search, and authentication improvements.",
+      "tags": [
+        "documentation",
+        "changelog",
+        "release-notes"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "package.json",
+      "summary": "Node.js package manifest for the Docusaurus-based notebook site, defining build/dev/deploy scripts, Docusaurus 3 core dependencies, markdown plugins, local search, and browser targets.",
+      "tags": [
+        "configuration",
+        "build-system",
+        "dependencies",
+        "npm"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Includes @docusaurus/core and @docusaurus/preset-classic as primary dependencies along with remark-gfm for GitHub Flavored Markdown support in the notebook editor."
+    },
+    {
+      "id": "config:tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "tsconfig.json",
+      "summary": "TypeScript compiler configuration extending Docusaurus's default tsconfig with JSX support set to react and source/output directory inclusions.",
+      "tags": [
+        "configuration",
+        "typescript",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:docs/ai-notes/_category_.json",
+      "type": "config",
+      "name": "_category_.json",
+      "filePath": "docs/ai-notes/_category_.json",
+      "summary": "Docusaurus sidebar category configuration for the AI Notes section, labeling it 'AI Notes' and placing it at position 8 in the sidebar.",
+      "tags": [
+        "configuration",
+        "docusaurus",
+        "navigation",
+        "sidebar"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:docs/ai-notes/_metadata.json",
+      "type": "config",
+      "name": "_metadata.json",
+      "filePath": "docs/ai-notes/_metadata.json",
+      "summary": "Custom metadata file tracking display titles, ordering, and last-updated timestamps for the two AI Notes documents in this section.",
+      "tags": [
+        "configuration",
+        "metadata",
+        "documentation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/ai-notes/ai-concept-tracker-1780990448581.md",
+      "type": "document",
+      "name": "ai-concept-tracker-1780990448581.md",
+      "filePath": "docs/ai-notes/ai-concept-tracker-1780990448581.md",
+      "summary": "A short personal reference tracker listing AI concepts (agents, tools, MCP, skills, hooks), frameworks (LangChain, CrewAI), and tools (Claude Code, LiteLLM, Ollama, uv) being explored.",
+      "tags": [
+        "documentation",
+        "reference",
+        "ai-concepts",
+        "notes"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/ai-notes/untitled-1780990513692.md",
+      "type": "document",
+      "name": "untitled-1780990513692.md",
+      "filePath": "docs/ai-notes/untitled-1780990513692.md",
+      "summary": "Comprehensive interactive tutorial covering the five Claude Code extension points (Tool, Workflow, Command, Skill, Hook), with real code examples and step-by-step build exercises for each concept.",
+      "tags": [
+        "documentation",
+        "tutorial",
+        "claude-code",
+        "workshop"
+      ],
+      "complexity": "complex",
+      "languageNotes": "A hands-on workshop document with 40 sections, executable prompt blocks, code examples, and a final challenge \u2014 structured to be paste-driven directly into Claude Code."
+    },
+    {
+      "id": "config:docs/claude-notes/_category_.json",
+      "type": "config",
+      "name": "_category_.json",
+      "filePath": "docs/claude-notes/_category_.json",
+      "summary": "Docusaurus sidebar category configuration for the Claude Code notes section, setting the sidebar label to 'Claude Code' and positioning it first.",
+      "tags": [
+        "configuration",
+        "documentation",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:docs/claude-notes/_metadata.json",
+      "type": "config",
+      "name": "_metadata.json",
+      "filePath": "docs/claude-notes/_metadata.json",
+      "summary": "Metadata mapping for the claude-notes directory, associating the first workshop file with its display title 'Claude Code Workshop 1'.",
+      "tags": [
+        "configuration",
+        "documentation",
+        "metadata"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/claude-notes/claude-workshop-1.md",
+      "type": "document",
+      "name": "claude-workshop-1.md",
+      "filePath": "docs/claude-notes/claude-workshop-1.md",
+      "summary": "Comprehensive interactive tutorial covering the five Claude Code extension building blocks \u2014 Tools, Workflows, Commands, Skills, and Hooks \u2014 with real examples, build exercises, and a quick reference card.",
+      "tags": [
+        "documentation",
+        "tutorial",
+        "claude-code",
+        "workshop"
+      ],
+      "complexity": "complex",
+      "languageNotes": "40 sections across 810 lines covering all five Claude Code extension primitives with hands-on build exercises and a final challenge."
+    },
+    {
+      "id": "document:docs/claude-notes/claude-workshop-2.md",
+      "type": "document",
+      "name": "claude-workshop-2.md",
+      "filePath": "docs/claude-notes/claude-workshop-2.md",
+      "summary": "Workshop guide covering AI agent development with the Anthropic SDK \u2014 including tool use, the agentic loop, multi-tool research agents, and building and wiring MCP servers to Claude Code.",
+      "tags": [
+        "documentation",
+        "tutorial",
+        "ai-agents",
+        "mcp"
+      ],
+      "complexity": "complex",
+      "languageNotes": "33 sections across 913 lines spanning SDK basics, tool use, the agentic loop, multi-agent orchestration, and MCP server construction with reference snippets."
+    },
+    {
+      "id": "document:docs/claude-notes/claude-workshop-3.md",
+      "type": "document",
+      "name": "claude-workshop-3.md",
+      "filePath": "docs/claude-notes/claude-workshop-3.md",
+      "summary": "Workshop guide on running LLMs locally with Ollama, generating embeddings, using Chroma as a vector database, and building end-to-end RAG pipelines with LangChain and hybrid search.",
+      "tags": [
+        "documentation",
+        "tutorial",
+        "rag",
+        "llm"
+      ],
+      "complexity": "complex",
+      "languageNotes": "38 sections across 817 lines covering local LLM setup, embedding generation, vector databases, full RAG pipeline construction, LangChain/LangGraph usage, and hybrid search patterns."
+    },
+    {
+      "id": "document:docs/claude-notes/claude-workshop-4.md",
+      "type": "document",
+      "name": "claude-workshop-4.md",
+      "filePath": "docs/claude-notes/claude-workshop-4.md",
+      "summary": "Advanced production AI workshop covering prompt engineering patterns, structured outputs, LLM evaluation harnesses, LoRA fine-tuning, vLLM model serving, cost optimization strategies, and multimodal AI pipelines.",
+      "tags": [
+        "documentation",
+        "tutorial",
+        "prompt-engineering",
+        "production-ai"
+      ],
+      "complexity": "complex",
+      "languageNotes": "46 sections across 1062 lines \u2014 the most comprehensive workshop, addressing eval harnesses, LoRA fine-tuning scripts, vLLM serving, prompt caching, batch API usage, and a final production RAG service project."
+    },
+    {
+      "id": "file:.understand-anything/.understandignore",
+      "type": "file",
+      "name": ".understandignore",
+      "filePath": ".understand-anything/.understandignore",
+      "summary": "Gitignore-style pattern file that controls which files and directories are excluded from the Understand-Anything analysis. Contains commented-out suggestions derived from the project's .gitignore and common test file patterns.",
+      "tags": [
+        "configuration",
+        "utility",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:docs/inbox/_category_.json",
+      "type": "config",
+      "name": "_category_.json",
+      "filePath": "docs/inbox/_category_.json",
+      "summary": "Docusaurus sidebar category configuration for the Inbox docs section, setting the display label to 'Inbox' and positioning it at slot 9 in the sidebar.",
+      "tags": [
+        "configuration",
+        "documentation",
+        "navigation"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:docusaurus.config.js",
+      "type": "file",
+      "name": "docusaurus.config.js",
+      "filePath": "docusaurus.config.js",
+      "summary": "Primary Docusaurus site configuration defining the site title, URL, base path, navbar links, plugins (local search, notebook-snapshot), and theme settings including Prism syntax highlighting and color mode preferences.",
+      "tags": [
+        "configuration",
+        "entry-point",
+        "build-system"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Uses ESM export default syntax with JSDoc @type annotations for IDE type checking without full TypeScript compilation."
+    },
+    {
+      "id": "file:src/css/custom.css",
+      "type": "file",
+      "name": "custom.css",
+      "filePath": "src/css/custom.css",
+      "summary": "Global CSS overrides for the Docusaurus site, defining custom color tokens for light and dark modes, typography adjustments, and site-wide visual customizations applied on top of the default Docusaurus theme.",
+      "tags": [
+        "styling",
+        "theme",
+        "configuration"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/docusaurus-env.d.ts",
+      "type": "file",
+      "name": "docusaurus-env.d.ts",
+      "filePath": "src/docusaurus-env.d.ts",
+      "summary": "TypeScript ambient type declaration file that pulls in Docusaurus module type aliases, enabling typed imports for @theme/*, @docusaurus/*, @generated/*, and CSS module paths across the project.",
+      "tags": [
+        "type-definition",
+        "configuration",
+        "typescript"
+      ],
+      "complexity": "simple",
+      "languageNotes": "Uses triple-slash reference directives rather than import statements, which is the Docusaurus-recommended approach for ambient type augmentation."
+    },
+    {
+      "id": "file:src/pages/index.js",
+      "type": "file",
+      "name": "index.js",
+      "filePath": "src/pages/index.js",
+      "summary": "Site root page that immediately redirects visitors to /homepage using Docusaurus's Redirect component, ensuring the bare URL and navbar title link resolve to the actual notebook hub.",
+      "tags": [
+        "entry-point",
+        "routing",
+        "component"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/pages/index.module.css",
+      "type": "file",
+      "name": "index.module.css",
+      "filePath": "src/pages/index.module.css",
+      "summary": "CSS Module stylesheet for the homepage/index page, providing scoped layout and styling rules for the page container and its child elements.",
+      "tags": [
+        "styling",
+        "component",
+        "markup"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:static/.nojekyll",
+      "type": "file",
+      "name": ".nojekyll",
+      "filePath": "static/.nojekyll",
+      "summary": "Empty marker file placed in the static directory to prevent GitHub Pages from processing the site through Jekyll, ensuring Docusaurus-generated files (including those starting with underscores) are served as-is.",
+      "tags": [
+        "infrastructure",
+        "deployment",
+        "configuration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:src/lib/notes.js:noteUpdatedAt",
+      "type": "function",
+      "name": "noteUpdatedAt",
+      "filePath": "src/lib/notes.js",
+      "lineRange": [
+        58,
+        62
+      ],
+      "summary": "Returns the last-updated timestamp for a note by checking the updated map first, then falling back to extracting a 13-digit timestamp from the note filename.",
+      "tags": [
+        "utility",
+        "timestamp"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:src/components/ErrorBoundary.tsx",
+      "target": "class:src/components/ErrorBoundary.tsx:ErrorBoundary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/components/ErrorBoundary.tsx",
+      "target": "class:src/components/ErrorBoundary.tsx:ErrorBoundary",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/EmptyState.tsx",
+      "target": "function:src/components/notebook/EmptyState.tsx:EmptyState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/components/notebook/EmptyState.tsx",
+      "target": "function:src/components/notebook/EmptyState.tsx:EmptyState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/EmptyState.tsx",
+      "target": "file:src/components/notebook/styles.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/NewNotebookPanel.tsx",
+      "target": "function:src/components/notebook/NewNotebookPanel.tsx:NewNotebookPanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/components/notebook/NewNotebookPanel.tsx",
+      "target": "function:src/components/notebook/NewNotebookPanel.tsx:NewNotebookPanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/NewNotebookPanel.tsx",
+      "target": "file:src/components/notebook/styles.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/NotebookModal.tsx",
+      "target": "function:src/components/notebook/NotebookModal.tsx:NotebookModal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/components/notebook/NotebookModal.tsx",
+      "target": "function:src/components/notebook/NotebookModal.tsx:NotebookModal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/NotebookModal.tsx",
+      "target": "file:src/components/notebook/styles.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/NotebookModal.tsx",
+      "target": "file:src/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/SaveModal.tsx",
+      "target": "function:src/components/notebook/SaveModal.tsx:SaveModal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/components/notebook/SaveModal.tsx",
+      "target": "function:src/components/notebook/SaveModal.tsx:SaveModal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/SaveModal.tsx",
+      "target": "file:src/components/notebook/styles.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/SaveModal.tsx",
+      "target": "file:src/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/Sidebar.tsx",
+      "target": "function:src/components/notebook/Sidebar.tsx:Sidebar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/components/notebook/Sidebar.tsx",
+      "target": "file:src/components/notebook/styles.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/Sidebar.tsx",
+      "target": "file:src/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/SyncDock.tsx",
+      "target": "function:src/components/notebook/SyncDock.tsx:SyncDock",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/components/notebook/SyncDock.tsx",
+      "target": "function:src/components/notebook/SyncDock.tsx:SyncDock",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/SyncDock.tsx",
+      "target": "file:src/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/lib/notes.d.ts",
+      "target": "file:src/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "function:src/pages/write.tsx:Workspace",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "function:src/pages/write.tsx:NotebookPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "function:src/pages/write.tsx:NotebookPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "file:src/components/ErrorBoundary.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "file:src/components/notebook/EmptyState.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "file:src/components/notebook/MiniNotebookGrid.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "file:src/components/notebook/NewNotebookPanel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "file:src/components/notebook/NotebookModal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "file:src/components/notebook/NoteEditor.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "file:src/components/notebook/NoteList.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "file:src/components/notebook/SaveModal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "file:src/components/notebook/Sidebar.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "file:src/components/notebook/styles.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "file:src/components/notebook/SyncDock.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "file:src/components/notebook/TokenGate.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "file:src/hooks/useGitHubNotebook.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/pages/write.tsx",
+      "target": "file:src/hooks/useNotifications.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:src/pages/write.tsx:Workspace",
+      "target": "file:src/hooks/useGitHubNotebook.ts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/MiniNotebookGrid.tsx",
+      "target": "function:src/components/notebook/MiniNotebookGrid.tsx:MiniNotebookGrid",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/components/notebook/MiniNotebookGrid.tsx",
+      "target": "function:src/components/notebook/MiniNotebookGrid.tsx:MiniNotebookGrid",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/MiniNotebookGrid.tsx",
+      "target": "file:src/lib/notes.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/MiniNotebookGrid.tsx",
+      "target": "file:src/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/NoteEditor.tsx",
+      "target": "function:src/components/notebook/NoteEditor.tsx:NoteEditor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/components/notebook/NoteEditor.tsx",
+      "target": "function:src/components/notebook/NoteEditor.tsx:readDraft",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/components/notebook/NoteEditor.tsx",
+      "target": "function:src/components/notebook/NoteEditor.tsx:NoteEditor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/NoteEditor.tsx",
+      "target": "file:src/components/notebook/MarkdownPreview.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/NoteEditor.tsx",
+      "target": "file:src/components/notebook/styles.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/NoteEditor.tsx",
+      "target": "file:src/hooks/useNotifications.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/NoteEditor.tsx",
+      "target": "file:src/lib/notes.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/NoteEditor.tsx",
+      "target": "function:src/hooks/useNotifications.tsx:useNotifications",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/TokenGate.tsx",
+      "target": "function:src/components/notebook/TokenGate.tsx:TokenGate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/components/notebook/TokenGate.tsx",
+      "target": "function:src/components/notebook/TokenGate.tsx:TokenGate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/TokenGate.tsx",
+      "target": "file:src/components/notebook/styles.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/TokenGate.tsx",
+      "target": "file:src/services/github.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/TokenGate.tsx",
+      "target": "function:src/services/github.ts:createGitHubClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/hooks/useGitHubNotebook.ts",
+      "target": "function:src/hooks/useGitHubNotebook.ts:useGitHubNotebook",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/hooks/useGitHubNotebook.ts",
+      "target": "function:src/hooks/useGitHubNotebook.ts:useGitHubNotebook",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/hooks/useGitHubNotebook.ts",
+      "target": "file:src/hooks/useNotifications.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/hooks/useGitHubNotebook.ts",
+      "target": "file:src/lib/notes.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/hooks/useGitHubNotebook.ts",
+      "target": "file:src/services/github.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/hooks/useGitHubNotebook.ts",
+      "target": "file:src/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/hooks/useGitHubNotebook.ts",
+      "target": "function:src/hooks/useNotifications.tsx:useNotifications",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/hooks/useGitHubNotebook.ts",
+      "target": "class:src/services/github.ts:GitHubNotebookClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/hooks/useNotifications.tsx",
+      "target": "function:src/hooks/useNotifications.tsx:NotificationProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/hooks/useNotifications.tsx",
+      "target": "function:src/hooks/useNotifications.tsx:useNotifications",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/hooks/useNotifications.tsx",
+      "target": "function:src/hooks/useNotifications.tsx:NotificationProvider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/hooks/useNotifications.tsx",
+      "target": "function:src/hooks/useNotifications.tsx:useNotifications",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/hooks/useNotifications.tsx",
+      "target": "file:src/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/lib/notes.js",
+      "target": "function:src/lib/notes.js:parseMetadata",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/lib/notes.js",
+      "target": "function:src/lib/notes.js:orderNotes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/lib/notes.js",
+      "target": "function:src/lib/notes.js:moveToIndex",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/lib/notes.js",
+      "target": "function:src/lib/notes.js:formatTimestamp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/lib/notes.js",
+      "target": "function:src/lib/notes.js:parseMetadata",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/lib/notes.js",
+      "target": "function:src/lib/notes.js:orderNotes",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/lib/notes.js",
+      "target": "function:src/lib/notes.js:moveToIndex",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/lib/notes.js",
+      "target": "function:src/lib/notes.js:formatTimestamp",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/pages/homepage.js",
+      "target": "function:src/pages/homepage.js:Home",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/pages/homepage.js",
+      "target": "function:src/pages/homepage.js:fetchLiveNotebooks",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/pages/homepage.js",
+      "target": "function:src/pages/homepage.js:Home",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/pages/homepage.js",
+      "target": "file:src/lib/notes.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/pages/homepage.js",
+      "target": "file:src/pages/index.module.css",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/pages/homepage.js",
+      "target": "function:src/lib/notes.js:parseMetadata",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/pages/homepage.js",
+      "target": "function:src/lib/notes.js:orderNotes",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/services/github.ts",
+      "target": "class:src/services/github.ts:GitHubNotebookClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/services/github.ts",
+      "target": "class:src/services/github.ts:GitHubError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/services/github.ts",
+      "target": "function:src/services/github.ts:createGitHubClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/services/github.ts",
+      "target": "class:src/services/github.ts:GitHubNotebookClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/services/github.ts",
+      "target": "class:src/services/github.ts:GitHubError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/services/github.ts",
+      "target": "function:src/services/github.ts:createGitHubClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/services/github.ts",
+      "target": "file:src/lib/notes.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/services/github.ts",
+      "target": "file:src/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/services/github.ts",
+      "target": "function:src/lib/notes.js:parseMetadata",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/DraftNote.tsx",
+      "target": "function:src/components/notebook/DraftNote.tsx:DraftNote",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/components/notebook/DraftNote.tsx",
+      "target": "function:src/components/notebook/DraftNote.tsx:DraftNote",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/DraftNote.tsx",
+      "target": "file:src/components/notebook/MarkdownPreview.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/DraftNote.tsx",
+      "target": "file:src/components/notebook/styles.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/DraftNote.tsx",
+      "target": "file:src/hooks/useSaveLifecycle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:src/components/notebook/DraftNote.tsx:DraftNote",
+      "target": "function:src/hooks/useSaveLifecycle.ts:useSaveLifecycle",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/ExpandableNote.tsx",
+      "target": "function:src/components/notebook/ExpandableNote.tsx:ExpandableNote",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/components/notebook/ExpandableNote.tsx",
+      "target": "file:src/components/notebook/MarkdownPreview.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/ExpandableNote.tsx",
+      "target": "file:src/components/notebook/styles.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/ExpandableNote.tsx",
+      "target": "file:src/hooks/useSaveLifecycle.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/ExpandableNote.tsx",
+      "target": "file:src/lib/notes.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/ExpandableNote.tsx",
+      "target": "file:src/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:src/components/notebook/ExpandableNote.tsx:ExpandableNote",
+      "target": "function:src/hooks/useSaveLifecycle.ts:useSaveLifecycle",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/MarkdownPreview.tsx",
+      "target": "function:src/components/notebook/MarkdownPreview.tsx:MarkdownPreview",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/components/notebook/MarkdownPreview.tsx",
+      "target": "function:src/components/notebook/MarkdownPreview.tsx:MarkdownPreview",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/MarkdownPreview.tsx",
+      "target": "file:src/components/notebook/styles.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/MarkdownPreview.tsx",
+      "target": "file:src/lib/notes.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/NoteList.tsx",
+      "target": "function:src/components/notebook/NoteList.tsx:NoteList",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/components/notebook/NoteList.tsx",
+      "target": "function:src/components/notebook/NoteList.tsx:NoteList",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/components/notebook/NoteList.tsx",
+      "target": "file:src/components/notebook/DraftNote.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/NoteList.tsx",
+      "target": "file:src/components/notebook/ExpandableNote.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/NoteList.tsx",
+      "target": "file:src/components/notebook/styles.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/NoteList.tsx",
+      "target": "file:src/hooks/useNoteListInteractions.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/NoteList.tsx",
+      "target": "file:src/lib/notes.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/notebook/NoteList.tsx",
+      "target": "file:src/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:src/components/notebook/NoteList.tsx:NoteList",
+      "target": "function:src/hooks/useNoteListInteractions.ts:useNoteListInteractions",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/hooks/useNoteListInteractions.ts",
+      "target": "function:src/hooks/useNoteListInteractions.ts:reducer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/hooks/useNoteListInteractions.ts",
+      "target": "function:src/hooks/useNoteListInteractions.ts:useNoteListInteractions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/hooks/useNoteListInteractions.ts",
+      "target": "function:src/hooks/useNoteListInteractions.ts:useNoteListInteractions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/hooks/useSaveLifecycle.ts",
+      "target": "function:src/hooks/useSaveLifecycle.ts:reducer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/hooks/useSaveLifecycle.ts",
+      "target": "function:src/hooks/useSaveLifecycle.ts:useSaveLifecycle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/hooks/useSaveLifecycle.ts",
+      "target": "function:src/hooks/useSaveLifecycle.ts:useSaveLifecycle",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/hooks/useSaveLifecycle.ts",
+      "target": "file:src/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:plugins/notebook-snapshot.js",
+      "target": "file:src/lib/notebooksFs.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:sidebars.js",
+      "target": "file:src/lib/notebooksFs.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/lib/notebooksFs.js",
+      "target": "file:src/lib/notes.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:plugins/notebook-snapshot.js",
+      "target": "function:plugins/notebook-snapshot.js:notebookSnapshotPlugin",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:plugins/notebook-snapshot.js",
+      "target": "function:plugins/notebook-snapshot.js:notebookSnapshotPlugin",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:sidebars.js",
+      "target": "function:sidebars.js:buildTutorialSidebar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/lib/notebooksFs.js",
+      "target": "function:src/lib/notebooksFs.js:readNotebooksFromDisk",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:src/lib/notebooksFs.js",
+      "target": "function:src/lib/notebooksFs.js:readNotebooksFromDisk",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:plugins/notebook-snapshot.js:notebookSnapshotPlugin",
+      "target": "function:src/lib/notebooksFs.js:readNotebooksFromDisk",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:sidebars.js:buildTutorialSidebar",
+      "target": "function:src/lib/notebooksFs.js:readNotebooksFromDisk",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:src/lib/notebooksFs.js:readNotebooksFromDisk",
+      "target": "function:src/lib/notes.js:parseMetadata",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:src/lib/notebooksFs.js:readNotebooksFromDisk",
+      "target": "function:src/lib/notes.js:orderNotes",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "pipeline:.github/workflows/deploy.yml",
+      "target": "step:.github/workflows/deploy.yml:build",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "pipeline:.github/workflows/deploy.yml",
+      "target": "step:.github/workflows/deploy.yml:deploy",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "pipeline:.github/workflows/deploy.yml",
+      "target": "file:docusaurus.config.js",
+      "type": "triggers",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:CLAUDE.md",
+      "target": "config:package.json",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "config:package.json",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:arch.md",
+      "target": "document:build-git-backed-notebook.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:changelog.md",
+      "target": "document:arch.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:tsconfig.json",
+      "target": "config:package.json",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:docs/ai-notes/_metadata.json",
+      "target": "document:docs/ai-notes/ai-concept-tracker-1780990448581.md",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:docs/ai-notes/_metadata.json",
+      "target": "document:docs/ai-notes/untitled-1780990513692.md",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:docs/ai-notes/_category_.json",
+      "target": "document:docs/ai-notes/ai-concept-tracker-1780990448581.md",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:docs/ai-notes/_category_.json",
+      "target": "document:docs/ai-notes/untitled-1780990513692.md",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:docs/ai-notes/ai-concept-tracker-1780990448581.md",
+      "target": "document:docs/ai-notes/untitled-1780990513692.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:docs/claude-notes/_category_.json",
+      "target": "document:docs/claude-notes/claude-workshop-1.md",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:docs/claude-notes/_category_.json",
+      "target": "document:docs/claude-notes/claude-workshop-2.md",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:docs/claude-notes/_category_.json",
+      "target": "document:docs/claude-notes/claude-workshop-3.md",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:docs/claude-notes/_category_.json",
+      "target": "document:docs/claude-notes/claude-workshop-4.md",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:docs/claude-notes/_metadata.json",
+      "target": "document:docs/claude-notes/claude-workshop-1.md",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:docs/claude-notes/claude-workshop-2.md",
+      "target": "document:docs/claude-notes/claude-workshop-1.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/claude-notes/claude-workshop-3.md",
+      "target": "document:docs/claude-notes/claude-workshop-2.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/claude-notes/claude-workshop-4.md",
+      "target": "document:docs/claude-notes/claude-workshop-3.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:src/pages/index.module.css",
+      "target": "file:src/pages/homepage.js",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:docusaurus.config.js",
+      "target": "file:src/css/custom.css",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:src/lib/notebooksFs.js:readNotebooksFromDisk",
+      "target": "function:src/lib/notes.js:noteUpdatedAt",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:ui",
+      "name": "UI Layer",
+      "description": "React pages and notebook workspace components \u2014 the editor, note list, sidebar, modals, markdown preview, and styling \u2014 that form the interactive writing interface served to users.",
+      "nodeIds": [
+        "file:src/components/ErrorBoundary.tsx",
+        "file:src/components/notebook/EmptyState.tsx",
+        "file:src/components/notebook/NewNotebookPanel.tsx",
+        "file:src/components/notebook/NotebookModal.tsx",
+        "file:src/components/notebook/SaveModal.tsx",
+        "file:src/components/notebook/Sidebar.tsx",
+        "file:src/components/notebook/SyncDock.tsx",
+        "file:src/components/notebook/MiniNotebookGrid.tsx",
+        "file:src/components/notebook/NoteEditor.tsx",
+        "file:src/components/notebook/TokenGate.tsx",
+        "file:src/components/notebook/DraftNote.tsx",
+        "file:src/components/notebook/ExpandableNote.tsx",
+        "file:src/components/notebook/MarkdownPreview.tsx",
+        "file:src/components/notebook/NoteList.tsx",
+        "file:src/components/notebook/styles.ts",
+        "file:src/pages/write.tsx",
+        "file:src/pages/homepage.js",
+        "file:src/pages/index.js",
+        "file:src/pages/index.module.css",
+        "file:src/css/custom.css"
+      ]
+    },
+    {
+      "id": "layer:hooks",
+      "name": "Hooks Layer",
+      "description": "Custom React hooks that encapsulate notebook state machines, GitHub API orchestration, UI interaction state, save lifecycle management, and toast notification context.",
+      "nodeIds": [
+        "file:src/hooks/useGitHubNotebook.ts",
+        "file:src/hooks/useNotifications.tsx",
+        "file:src/hooks/useNoteListInteractions.ts",
+        "file:src/hooks/useSaveLifecycle.ts"
+      ]
+    },
+    {
+      "id": "layer:service",
+      "name": "Service Layer",
+      "description": "GitHub Contents API client that handles all authenticated reads, writes, deletes, and deployment-status queries for the git-backed notebook storage backend.",
+      "nodeIds": [
+        "file:src/services/github.ts"
+      ]
+    },
+    {
+      "id": "layer:utility",
+      "name": "Utility & Types Layer",
+      "description": "Shared pure-helper functions for slug generation, base64 encoding, note metadata serialization, and ordering, plus the central TypeScript type definitions and ambient declaration files used across both the browser app and build-time scripts.",
+      "nodeIds": [
+        "file:src/lib/notes.js",
+        "file:src/lib/notes.d.ts",
+        "file:src/lib/notebooksFs.js",
+        "file:src/types.ts",
+        "file:src/docusaurus-env.d.ts"
+      ]
+    },
+    {
+      "id": "layer:build",
+      "name": "Build & Configuration Layer",
+      "description": "Docusaurus site configuration, dynamic sidebar generation, the notebook-snapshot build plugin, Node.js package manifest, TypeScript compiler settings, and static deployment marker files that together define how the site is assembled and served.",
+      "nodeIds": [
+        "file:docusaurus.config.js",
+        "file:sidebars.js",
+        "file:plugins/notebook-snapshot.js",
+        "config:package.json",
+        "config:tsconfig.json",
+        "file:.understand-anything/.understandignore",
+        "file:static/.nojekyll"
+      ]
+    },
+    {
+      "id": "layer:content",
+      "name": "Content Layer",
+      "description": "Published notebook content stored under docs/ \u2014 the AI notes and Claude workshop markdown files together with their Docusaurus category and metadata config files that control sidebar ordering and display titles.",
+      "nodeIds": [
+        "config:docs/ai-notes/_category_.json",
+        "config:docs/ai-notes/_metadata.json",
+        "document:docs/ai-notes/ai-concept-tracker-1780990448581.md",
+        "document:docs/ai-notes/untitled-1780990513692.md",
+        "config:docs/claude-notes/_category_.json",
+        "config:docs/claude-notes/_metadata.json",
+        "document:docs/claude-notes/claude-workshop-1.md",
+        "document:docs/claude-notes/claude-workshop-2.md",
+        "document:docs/claude-notes/claude-workshop-3.md",
+        "document:docs/claude-notes/claude-workshop-4.md",
+        "config:docs/inbox/_category_.json"
+      ]
+    },
+    {
+      "id": "layer:documentation",
+      "name": "Documentation Layer",
+      "description": "Root-level project documentation covering setup instructions, architecture diagrams, the git-backed notebook implementation guide, and the branch changelog.",
+      "nodeIds": [
+        "document:CLAUDE.md",
+        "document:README.md",
+        "document:arch.md",
+        "document:build-git-backed-notebook.md",
+        "document:changelog.md"
+      ]
+    },
+    {
+      "id": "layer:ci-cd",
+      "name": "CI/CD Layer",
+      "description": "GitHub Actions workflow that builds the Docusaurus site with Node.js 22 and deploys it to GitHub Pages on every push to the main branch.",
+      "nodeIds": [
+        "pipeline:.github/workflows/deploy.yml",
+        "step:.github/workflows/deploy.yml:build",
+        "step:.github/workflows/deploy.yml:deploy"
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "Project Overview",
+      "description": "The README introduces sachin-notebook: a personal notes and tutorials site built with Docusaurus 3 and deployed to GitHub Pages. It explains the dual nature of the project \u2014 a static documentation site on the outside, and a git-backed interactive notebook workspace on the inside, where every note save is a real GitHub commit. Reading this first gives you the mental model that frames every architectural decision that follows.",
+      "nodeIds": [
+        "document:README.md"
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Architecture & Design Decisions",
+      "description": "The arch.md document maps the full system \u2014 data flow sequences, the note lifecycle state machine, build pipeline, and layer map. Before reading any code, this document reveals the two distinct runtime modes: the Docusaurus SSR build (which reads notes from disk) and the live browser workspace (which reads and writes notes through the GitHub Contents API). Understanding this duality is the key to making sense of every other file in the project.",
+      "nodeIds": [
+        "document:arch.md"
+      ]
+    },
+    {
+      "order": 3,
+      "title": "Site Configuration",
+      "description": "docusaurus.config.js is the root of the Docusaurus site: it declares the site URL, base path for GitHub Pages, navbar links, theme settings, and registers the notebook-snapshot plugin. This file is also the entry point that the GitHub Actions deploy workflow triggers against. It depends on custom.css for global styling, establishing the two-file foundation that every page inherits.",
+      "nodeIds": [
+        "file:docusaurus.config.js",
+        "file:src/css/custom.css"
+      ]
+    },
+    {
+      "order": 4,
+      "title": "Domain Types",
+      "description": "src/types.ts is the vocabulary of the entire notebook system \u2014 it defines TypeScript interfaces for the GitHub Contents API response shapes, the Notebook and Note domain models, notebook metadata, and UI lifecycle state enums. With fanIn=3 it is imported by every major module: the service layer, the central hook, and the utility library. Reading types.ts first lets you understand what data flows through the system before you see how it moves.",
+      "nodeIds": [
+        "file:src/types.ts"
+      ]
+    },
+    {
+      "order": 5,
+      "title": "Shared Utility Library",
+      "description": "src/lib/notes.js is the shared utility layer imported by the service client, the central hook, and the build-time filesystem library \u2014 making it the single most reused file in the project alongside types.ts. It holds the GitHub repo constants (owner, repo name, branch), and pure helper functions for slugification, base64 encoding/decoding, note metadata serialization into Markdown frontmatter, timestamp formatting, and note ordering. Because it has zero UI dependencies it is usable in both browser and Node.js build contexts.",
+      "nodeIds": [
+        "file:src/lib/notes.js",
+        "file:src/lib/notes.d.ts"
+      ]
+    },
+    {
+      "order": 6,
+      "title": "GitHub API Service",
+      "description": "src/services/github.ts is the single point of contact with the GitHub Contents API. It defines GitHubNotebookClient \u2014 a class whose methods map directly to API operations: listing notebooks, reading note files, writing and deleting files with their SHA etags, reading and writing notebook metadata, and polling the GitHub Actions run status. GitHubError wraps HTTP failures with status codes for structured error handling upstream. All authentication flows through a GitHub Personal Access Token passed into the constructor.",
+      "nodeIds": [
+        "file:src/services/github.ts"
+      ]
+    },
+    {
+      "order": 7,
+      "title": "Central Notebook Hook",
+      "description": "src/hooks/useGitHubNotebook.ts is the nerve center of the runtime application. It wires together the GitHubNotebookClient, the notes utility library, and the notifications context into a single hook that manages the entire notebook lifecycle: listing notebooks, selecting and loading notes, creating and deleting notebooks, reordering and saving individual notes, and polling deploy status after a save triggers a GitHub Actions run. Every piece of mutable UI state \u2014 loading flags, sync progress, error conditions \u2014 lives here, making it the definitive state source for the write page.",
+      "nodeIds": [
+        "file:src/hooks/useGitHubNotebook.ts"
+      ]
+    },
+    {
+      "order": 8,
+      "title": "Workspace Entry Point",
+      "description": "src/pages/write.tsx is the composition root of the notebook workspace. With fanOut=13 it imports every notebook component and the central hook, wires them together, and owns one top-level concern: managing the GitHub PAT token in localStorage to decide whether to render the TokenGate or the full workspace. It is a thin orchestrator \u2014 it calls useGitHubNotebook to get state and callbacks, then passes them down to Sidebar, NoteList, NoteEditor, modals, and the SyncDock. Understanding this file gives you the complete component wiring diagram.",
+      "nodeIds": [
+        "file:src/pages/write.tsx",
+        "file:src/components/ErrorBoundary.tsx",
+        "file:src/components/notebook/TokenGate.tsx"
+      ]
+    },
+    {
+      "order": 9,
+      "title": "Note List & Interaction State",
+      "description": "NoteList.tsx is the primary notebook UI \u2014 it renders the ordered list of notes with drag-and-drop reordering, inline draft creation, deletion confirmation dialogs, and cross-notebook move support. Its complexity is tamed by useNoteListInteractions.ts, a dedicated hook that uses useReducer to centralize all local UI state transitions (expanded note, delete confirmation, move target). This separation keeps NoteList focused on rendering while the hook manages what the component should show at any moment.",
+      "nodeIds": [
+        "file:src/components/notebook/NoteList.tsx",
+        "file:src/hooks/useNoteListInteractions.ts"
+      ]
+    },
+    {
+      "order": 10,
+      "title": "Note Editor & Save Lifecycle",
+      "description": "NoteEditor.tsx provides the full markdown editing experience: split edit/preview/combined view modes, draft recovery from localStorage, image paste and drag-drop upload to GitHub, and Cmd+S keyboard shortcut. DraftNote.tsx handles new-note composition before a first save. Both components use useSaveLifecycle.ts \u2014 a small focused hook implementing the idle \u2192 saving \u2192 saved \u2192 error state machine with an auto-clearing timeout that resets the UI to idle after a brief success flash.",
+      "nodeIds": [
+        "file:src/components/notebook/NoteEditor.tsx",
+        "file:src/components/notebook/DraftNote.tsx",
+        "file:src/hooks/useSaveLifecycle.ts"
+      ]
+    },
+    {
+      "order": 11,
+      "title": "Sidebar, Sync Dock & Modals",
+      "description": "The remaining workspace components complete the collaborative shell around the editor. Sidebar.tsx lists notebooks with selection, creation, and deletion controls. SyncDock.tsx renders a persistent status bar with real-time save/sync/deploy badges fed by the state from useGitHubNotebook. SaveModal.tsx and NotebookModal.tsx provide progress overlays during the multi-step save-and-deploy sequence. Together these components make the async GitHub commit-and-deploy cycle legible to the user in real time.",
+      "nodeIds": [
+        "file:src/components/notebook/Sidebar.tsx",
+        "file:src/components/notebook/SyncDock.tsx",
+        "file:src/components/notebook/SaveModal.tsx",
+        "file:src/components/notebook/NotebookModal.tsx"
+      ]
+    },
+    {
+      "order": 12,
+      "title": "Build Pipeline & Snapshot Plugin",
+      "description": "At build time, the Docusaurus pipeline takes a different path than the runtime browser workspace. plugins/notebook-snapshot.js is a Docusaurus plugin that runs during the build \u2014 it calls notebooksFs.js to walk the docs/ directory, reads _category_.json and _metadata.json from each notebook folder, and exposes the result as global plugin data. sidebars.js uses the same notebooksFs.js library to dynamically generate the sidebar from real notebook directories, so the sidebar never needs manual updates when notebooks are added or renamed.",
+      "nodeIds": [
+        "file:plugins/notebook-snapshot.js",
+        "file:src/lib/notebooksFs.js",
+        "file:sidebars.js"
+      ]
+    },
+    {
+      "order": 13,
+      "title": "Homepage & Content Layer",
+      "description": "src/pages/homepage.js is the public face of the notebook: it merges the build-time snapshot (from the notebook-snapshot plugin) with live GitHub API data fetched client-side, then renders a searchable grid of notebooks. The docs/ directories under ai-notes and claude-notes hold the actual published Markdown content \u2014 each folder's _category_.json and _metadata.json tell Docusaurus how to display and order that section in the sidebar. This is the content that the notebook workspace produces and the Docusaurus site publishes.",
+      "nodeIds": [
+        "file:src/pages/homepage.js",
+        "config:docs/ai-notes/_category_.json",
+        "config:docs/ai-notes/_metadata.json"
+      ]
+    },
+    {
+      "order": 14,
+      "title": "CI/CD & Deployment",
+      "description": "The GitHub Actions deploy.yml workflow is the final link in the chain. Every push to main triggers a Node.js 22 build of the Docusaurus site followed by deployment to GitHub Pages. The static/.nojekyll marker file in the repo prevents GitHub Pages from treating the site as a Jekyll project. Notably, when a user saves a note from the workspace, the GitHub commit they create will itself trigger this same workflow \u2014 meaning a note save in the browser results in a full site rebuild and republication within minutes.",
+      "nodeIds": [
+        "pipeline:.github/workflows/deploy.yml",
+        "file:static/.nojekyll"
+      ]
+    }
+  ]
+}
