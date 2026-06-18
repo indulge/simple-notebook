@@ -180,8 +180,9 @@ select,
    WRITING AREA  (notebook workspace — cosmetic hooks for inline-styled components)
    ════════════════════════════════════════════════════════════════════════════ */
 
-/* Show delete button on note row hover. */
-.note-item-row:hover .note-delete-btn {
+/* Show delete button on note/notebook row hover. */
+.note-item-row:hover .note-delete-btn,
+.notebook-item-row:hover .note-delete-btn {
   opacity: 1 !important;
 }
 

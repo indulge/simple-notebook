@@ -128,6 +128,17 @@ export interface NotebookModalState {
 /** Whether a sync poll waits for a file to appear or to disappear. */
 export type SyncMode = 'appeared' | 'gone';
 
+/** A GitHub Actions workflow run, as far as the deploy badge cares. */
+export interface DeployRun {
+  status: string;
+  conclusion: string | null;
+  url: string;
+  createdAt: number;
+}
+
+/** Pages-deploy state shown in the SyncDock after a save lands on main. */
+export type DeployStatus = 'deploying' | 'live' | 'failed' | null;
+
 /** A transient, user-facing notification (toast). */
 export interface AppNotification {
   id: number;

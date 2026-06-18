@@ -3,7 +3,7 @@
 // `useNoteListInteractions` reducer; this component renders it and wires the
 // drag/hover/drop affordances.
 
-import React from 'react';
+import React, { useState } from 'react';
 import { moveToIndex, noteUpdatedAt, orderNotes } from '@site/src/lib/notes';
 import { useNoteListInteractions } from '@site/src/hooks/useNoteListInteractions';
 import type { NoteContent, NoteFile, Notebook, NotebookMetadataState } from '@site/src/types';
@@ -13,9 +13,12 @@ import { s } from './styles';
 
 interface Props {
   notebook: Notebook;
+  /** All notebooks — targets for the per-note "move to" picker. */
+  notebooks: Notebook[];
   notes: NoteFile[];
   loading: boolean;
   onDeleteNote: (note: NoteFile) => void;
+  onMoveNote: (note: NoteFile, target: Notebook) => void;
   syncing: boolean;
   syncProgress: number;
   metadata: NotebookMetadataState;
@@ -37,9 +40,11 @@ interface Props {
 
 export default function NoteList({
   notebook,
+  notebooks,
   notes,
   loading,
   onDeleteNote,
+  onMoveNote,
   syncing,
   syncProgress,
   metadata,
@@ -49,6 +54,9 @@ export default function NoteList({
   onCreateNote,
 }: Props) {
   const ui = useNoteListInteractions(notebook.name);
+  // Note whose "move to notebook" picker is open.
+  const [movingNote, setMovingNote] = useState<string | null>(null);
+  const moveTargets = notebooks.filter((n) => n.name !== notebook.name);
   const { dragName, dropIndex, hoverIndex, draftAfter, confirmingDelete, expanded, activeInsert } =
     ui.state;
 
@@ -189,6 +197,43 @@ export default function NoteList({
         )}
         {orderedNotes.map((note, i) => {
           const title = metadata?.titles?.[note.name] || note.name.replace(/\.mdx?$/, '');
+          const moveSlot =
+            moveTargets.length === 0 ? null : movingNote === note.name ? (
+              <select
+                autoFocus
+                defaultValue=""
+                onClick={(e) => e.stopPropagation()}
+                onBlur={() => setMovingNote(null)}
+                onChange={(e) => {
+                  const target = moveTargets.find((n) => n.name === e.target.value);
+                  setMovingNote(null);
+                  if (target) onMoveNote(note, target);
+                }}
+                style={{ fontSize: 12, maxWidth: 140 }}
+                title="Move this note to another notebook"
+              >
+                <option value="" disabled>
+                  Move to…
+                </option>
+                {moveTargets.map((n) => (
+                  <option key={n.name} value={n.name}>
+                    {n.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMovingNote(note.name);
+                }}
+                style={s.deleteBtn}
+                className="note-delete-btn"
+                title="Move to another notebook"
+              >
+                📂
+              </button>
+            );
           const deleteSlot =
             confirmingDelete === note.name ? (
               <span
@@ -241,7 +286,12 @@ export default function NoteList({
                 onToggle={ui.toggleExpand}
                 onLoad={onLoadNote}
                 onSave={onSaveNote}
-                deleteSlot={deleteSlot}
+                deleteSlot={
+                  <>
+                    {moveSlot}
+                    {deleteSlot}
+                  </>
+                }
                 index={i}
                 onDragStart={handleDragStart}
                 onHover={ui.setDropIndex}

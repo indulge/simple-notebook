@@ -11,12 +11,14 @@ import {
   API,
   BRANCH,
   DOCS_PATH,
+  REPO_API,
   b64Decode,
   b64Encode,
   parseMetadata,
   serializeMetadata,
 } from '@site/src/lib/notes';
 import type {
+  DeployRun,
   GitHubContentEntry,
   GitHubErrorResponse,
   GitHubFileResponse,
@@ -174,6 +176,26 @@ export class GitHubNotebookClient {
     return data.content?.sha ?? sha ?? null;
   }
 
+  /**
+   * Create a binary file (e.g. a pasted image) from raw bytes. Unlike
+   * `putFile`, the payload is base64-encoded straight from the buffer with no
+   * text round-trip. Create-only: collisions are avoided by unique filenames.
+   */
+  async putBinaryFile(path: string, message: string, bytes: ArrayBuffer): Promise<void> {
+    let binary = '';
+    const view = new Uint8Array(bytes);
+    const chunk = 0x8000; // keep String.fromCharCode under the arg-count limit
+    for (let i = 0; i < view.length; i += chunk) {
+      binary += String.fromCharCode(...view.subarray(i, i + chunk));
+    }
+    const res = await fetch(`${API}/${path}`, {
+      method: 'PUT',
+      headers: this.headers(),
+      body: JSON.stringify({ message, content: btoa(binary), branch: BRANCH }),
+    });
+    if (!res.ok) throw await this.toError(res, 'Image upload failed.');
+  }
+
   async deleteFile(path: string, sha: string, message: string): Promise<void> {
     const res = await fetch(`${API}/${path}`, {
       method: 'DELETE',
@@ -234,7 +256,7 @@ export class GitHubNotebookClient {
     return currentSha;
   }
 
-  // ── notebook creation ────────────────────────────────────────────────────
+  // ── notebook creation / deletion ─────────────────────────────────────────
 
   /** Write a `_category_.json` so a new directory shows up as a notebook. */
   async createNotebookCategory(slug: string, label: string, position: number): Promise<void> {
@@ -243,6 +265,61 @@ export class GitHubNotebookClient {
       `Create notebook: ${label}`,
       JSON.stringify({ label, position }, null, 2),
     );
+  }
+
+  /** List every file in a notebook directory, including `_`-prefixed sidecars. */
+  async listAllFiles(notebook: string): Promise<NoteFile[]> {
+    const res = await fetch(this.readUrl(`${DOCS_PATH}/${notebook}`), {
+      headers: this.headers(false),
+    });
+    if (!res.ok) throw await this.toError(res, 'Failed to list notebook contents.');
+    const data = (await res.json()) as GitHubContentEntry[];
+    return data
+      .filter((i) => i.type === 'file')
+      .map((i) => ({ name: i.name, sha: i.sha, type: 'file', path: i.path }));
+  }
+
+  /**
+   * Delete a notebook by deleting every file in its directory (git drops empty
+   * directories automatically). Sequential on purpose: parallel deletes against
+   * the same branch race on the head commit and 409.
+   */
+  async deleteNotebook(notebook: string): Promise<void> {
+    const files = await this.listAllFiles(notebook);
+    for (const f of files) {
+      if (f.sha) await this.deleteFile(f.path, f.sha, `Delete notebook: ${notebook}`);
+    }
+  }
+
+  // ── deploy status (GitHub Actions) ───────────────────────────────────────
+
+  /** The most recent workflow run on the branch, or null if none/unavailable. */
+  async getLatestDeployRun(): Promise<DeployRun | null> {
+    try {
+      const res = await fetch(
+        `${REPO_API}/actions/runs?branch=${BRANCH}&per_page=1&_=${Date.now()}`,
+        { headers: this.headers(false) },
+      );
+      if (!res.ok) return null;
+      const data = (await res.json()) as {
+        workflow_runs?: Array<{
+          status: string;
+          conclusion: string | null;
+          html_url: string;
+          created_at: string;
+        }>;
+      };
+      const run = data.workflow_runs?.[0];
+      if (!run) return null;
+      return {
+        status: run.status,
+        conclusion: run.conclusion,
+        url: run.html_url,
+        createdAt: Date.parse(run.created_at),
+      };
+    } catch {
+      return null;
+    }
   }
 }
 

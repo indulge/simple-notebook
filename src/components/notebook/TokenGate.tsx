@@ -27,7 +27,9 @@ export default function TokenGate({ onAuthenticated, onDismiss }: Props) {
         localStorage.setItem('gh_pat', token);
         onAuthenticated(token);
       } else {
-        setError('Token rejected by GitHub. Check that it has repo scope.');
+        setError(
+          'Token rejected by GitHub. Check that it can access this repository with Contents read/write.',
+        );
       }
     } catch {
       setError('Network error. Check your connection.');
@@ -45,12 +47,21 @@ export default function TokenGate({ onAuthenticated, onDismiss }: Props) {
         )}
         <h2 style={{ margin: '0 0 8px' }}>Connect to GitHub</h2>
         <p style={{ margin: '0 0 20px', color: 'var(--ifm-color-emphasis-600)', fontSize: 14 }}>
-          Paste your GitHub Personal Access Token (with <code>repo</code> scope) to start writing
-          notes. It will be saved in your browser only.
+          Paste a GitHub Personal Access Token to start writing notes. Use a{' '}
+          <a
+            href="https://github.com/settings/personal-access-tokens/new"
+            target="_blank"
+            rel="noreferrer"
+          >
+            fine-grained token
+          </a>{' '}
+          scoped to <strong>only this repository</strong> with{' '}
+          <code>Contents: Read and write</code> permission — safer than a classic{' '}
+          <code>repo</code>-scope token, which grants access to all your repos.
         </p>
         <input
           type="password"
-          placeholder="ghp_xxxxxxxxxxxx"
+          placeholder="github_pat_… or ghp_…"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSave()}

@@ -9,10 +9,11 @@
 // The page component below it stays presentational.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { DOCS_PATH, slugify } from '@site/src/lib/notes';
+import { DOCS_PATH, draftStorageKey, slugify } from '@site/src/lib/notes';
 import { GitHubError, GitHubNotebookClient } from '@site/src/services/github';
 import { useNotifications } from '@site/src/hooks/useNotifications';
 import type {
+  DeployStatus,
   EditingNote,
   Notebook,
   NoteContent,
@@ -60,16 +61,51 @@ export function useGitHubNotebook(pat: string | null) {
   const [saveModal, setSaveModal] = useState<SaveModalState>(CLOSED_SAVE_MODAL);
   const [notebookModal, setNotebookModal] = useState<NotebookModalState>(CLOSED_NOTEBOOK_MODAL);
 
+  const [deployStatus, setDeployStatus] = useState<DeployStatus>(null);
+  const [deployUrl, setDeployUrl] = useState<string | null>(null);
+  const [deletingNotebook, setDeletingNotebook] = useState<string | null>(null);
+
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const deployTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
     () => () => {
       if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
       if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+      if (deployTimerRef.current) clearTimeout(deployTimerRef.current);
     },
     [],
   );
+
+  // ── deploy watching (GitHub Pages goes live only after Actions finishes) ────
+
+  /**
+   * After a write lands on main, follow the Actions run it triggered and
+   * surface "Deploying… → Live" in the SyncDock. Runs created before this
+   * watch started are ignored so a stale completed run can't claim "live".
+   */
+  const watchDeploy = useCallback(() => {
+    if (deployTimerRef.current) clearTimeout(deployTimerRef.current);
+    const startedAt = Date.now();
+    setDeployStatus('deploying');
+    setDeployUrl(null);
+
+    let attempts = 0;
+    const poll = async () => {
+      attempts++;
+      const run = await client.getLatestDeployRun();
+      if (run && run.createdAt >= startedAt - 60_000 && run.status === 'completed') {
+        setDeployStatus(run.conclusion === 'success' ? 'live' : 'failed');
+        setDeployUrl(run.url);
+        return;
+      }
+      // Cap at ~10 minutes of polling, then stop claiming anything.
+      if (attempts < 60) deployTimerRef.current = setTimeout(poll, 10_000);
+      else setDeployStatus(null);
+    };
+    deployTimerRef.current = setTimeout(poll, 8_000);
+  }, [client]);
 
   // ── notebooks / notes / metadata fetching ──────────────────────────────────
 
@@ -210,6 +246,33 @@ export function useGitHubNotebook(pat: string | null) {
     [client, notebooks.length, fetchNotes, fetchMetadata],
   );
 
+  // ── quick capture ──────────────────────────────────────────────────────────
+
+  /**
+   * Jump straight into a blank full-screen note in the "inbox" notebook,
+   * creating that notebook on demand — no notebook-picking ceremony. Used by
+   * the navbar's Quick note entry (`/write?quick=1`).
+   */
+  const quickCapture = useCallback(async () => {
+    const name = 'inbox';
+    let nb = notebooks.find((n) => n.name === name);
+    if (!nb) {
+      try {
+        await client.createNotebookCategory(name, 'Inbox', notebooks.length + 2);
+      } catch {
+        /* the directory may already exist remotely — selecting it still works */
+      }
+      nb = { name };
+      setNotebooks((prev) => (prev.some((n) => n.name === name) ? prev : [...prev, { name }]));
+    }
+    setSelectedNotebook(nb);
+    setMetadata(EMPTY_METADATA);
+    fetchNotes(nb);
+    fetchMetadata(nb);
+    setEditingNote(null);
+    setView('edit');
+  }, [client, notebooks, fetchNotes, fetchMetadata]);
+
   // ── deletion ─────────────────────────────────────────────────────────────
 
   const deleteNote = useCallback(
@@ -240,11 +303,107 @@ export function useGitHubNotebook(pat: string | null) {
         setMetadata({ titles: newTitles, order: newOrder, updated: newUpdated, sha: newSha });
         startSyncPoll(note.name, selectedNotebook, 'gone');
         notify('Note deleted.', 'success');
+        watchDeploy();
       } catch (e) {
         notify(errMsg(e, 'Delete failed.'), 'error');
       }
     },
-    [client, selectedNotebook, metadata, startSyncPoll, notify],
+    [client, selectedNotebook, metadata, startSyncPoll, notify, watchDeploy],
+  );
+
+  const deleteNotebook = useCallback(
+    async (nb: Notebook) => {
+      setDeletingNotebook(nb.name);
+      try {
+        await client.deleteNotebook(nb.name);
+        setNotebooks((prev) => prev.filter((n) => n.name !== nb.name));
+        if (selectedNotebook?.name === nb.name) {
+          setSelectedNotebook(null);
+          setNotes([]);
+          setMetadata(EMPTY_METADATA);
+          setEditingNote(null);
+          setView('list');
+        }
+        notify(`Notebook "${nb.name}" deleted.`, 'success');
+        watchDeploy();
+      } catch (e) {
+        notify(errMsg(e, 'Failed to delete the notebook.'), 'error');
+        fetchNotebooks(); // partial delete is possible — resync the listing
+      } finally {
+        setDeletingNotebook(null);
+      }
+    },
+    [client, selectedNotebook, notify, watchDeploy, fetchNotebooks],
+  );
+
+  // ── move a note to another notebook ─────────────────────────────────────────
+
+  const moveNote = useCallback(
+    async (note: NoteFile, target: Notebook) => {
+      if (!selectedNotebook || target.name === selectedNotebook.name) return;
+      const title = metadata.titles[note.name] || note.name.replace(/\.mdx?$/, '');
+      try {
+        // Copy into the target (content first, then its metadata entry)…
+        const { content } = await client.getNote(selectedNotebook.name, note.name);
+        await client.putFile(
+          `${DOCS_PATH}/${target.name}/${note.name}`,
+          `Move note: ${title} → ${target.name}`,
+          content,
+        );
+        const targetMeta = await client.getMetadata(target.name);
+        await client.putMetadata(
+          target.name,
+          { ...targetMeta.titles, [note.name]: title },
+          targetMeta.order.includes(note.name) ? targetMeta.order : [...targetMeta.order, note.name],
+          { ...targetMeta.updated, [note.name]: Date.now() },
+          targetMeta.sha,
+        );
+
+        // …then remove it from the source notebook.
+        if (note.sha) {
+          await client.deleteFile(note.path, note.sha, `Move note: ${title} → ${target.name}`);
+        }
+        const newTitles = { ...metadata.titles };
+        delete newTitles[note.name];
+        const newUpdated = { ...metadata.updated };
+        delete newUpdated[note.name];
+        const newOrder = metadata.order.filter((n) => n !== note.name);
+        const newSha = await client.putMetadata(
+          selectedNotebook.name,
+          newTitles,
+          newOrder,
+          newUpdated,
+          metadata.sha,
+        );
+        setMetadata({ titles: newTitles, order: newOrder, updated: newUpdated, sha: newSha });
+        setNotes((prev) => prev.filter((n) => n.name !== note.name));
+        notify(`Moved "${title}" to ${target.name}.`, 'success');
+        watchDeploy();
+      } catch (e) {
+        notify(errMsg(e, 'Move failed.'), 'error');
+      }
+    },
+    [client, selectedNotebook, metadata, notify, watchDeploy],
+  );
+
+  // ── image upload (pasted/dropped into the editor) ───────────────────────────
+
+  const uploadImage = useCallback(
+    async (file: File): Promise<string> => {
+      const rawExt = file.name.includes('.') ? file.name.split('.').pop()! : 'png';
+      const ext = rawExt.toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
+      const base = slugify(file.name.replace(/\.[^.]*$/, '')) || 'image';
+      const name = `${base}-${Date.now()}.${ext}`;
+      await client.putBinaryFile(
+        `static/img/notes/${name}`,
+        `Add image: ${name}`,
+        await file.arrayBuffer(),
+      );
+      // `/img/…` resolves on the published site (baseUrl-prefixed at build
+      // time) and is mapped to raw repo contents in the live preview.
+      return `/img/notes/${name}`;
+    },
+    [client],
   );
 
   // ── refresh everything currently on screen ──────────────────────────────────
@@ -360,9 +519,10 @@ export function useGitHubNotebook(pat: string | null) {
         sha,
       );
       await commitMetadata(note.name, noteTitle);
+      watchDeploy();
       return newSha;
     },
-    [client, selectedNotebook, commitMetadata],
+    [client, selectedNotebook, commitMetadata, watchDeploy],
   );
 
   const reorderNotes = useCallback(
@@ -411,11 +571,17 @@ export function useGitHubNotebook(pat: string | null) {
           : [...prev, { name: fileName, sha: newSha, type: 'file', path: filePath }],
       );
       notify('Note created.', 'success');
+      watchDeploy();
     },
-    [client, selectedNotebook, metadata, notify],
+    [client, selectedNotebook, metadata, notify, watchDeploy],
   );
 
-  // ── full-screen editor: save (modal + conflict recovery + sync poll) ─────────
+  // ── full-screen editor: save (non-blocking: push, then background sync) ─────
+  //
+  // The push itself completes in about a second; everything after (CDN
+  // propagation, the Pages deploy) is confirmation the user shouldn't have to
+  // wait on. So: push → release the editor immediately → confirm in the
+  // background via the SyncDock. The SaveModal only appears for hard errors.
 
   const saveNote = useCallback(
     async (title: string, content: string) => {
@@ -431,14 +597,7 @@ export function useGitHubNotebook(pat: string | null) {
         ? editingNote.path
         : `${DOCS_PATH}/${selectedNotebook.name}/${fileName}`;
 
-      // Phase 1: push.
-      setSaveModal({ open: true, step: 'pushing', progress: 5, error: null });
-      let pushProg = 5;
-      const pushTick = setInterval(() => {
-        pushProg = Math.min(pushProg + 4, 45);
-        setSaveModal((prev) => ({ ...prev, progress: pushProg }));
-      }, 80);
-
+      // Phase 1: push (the only part the user waits for).
       let expectedSha: string | null;
       try {
         expectedSha = await client.putFile(
@@ -448,10 +607,8 @@ export function useGitHubNotebook(pat: string | null) {
           editingNote?.sha,
         );
       } catch (e) {
-        clearInterval(pushTick);
         if (e instanceof GitHubError && e.isConflict) {
           // Reload the latest SHA, keep the user's edits, and let them retry.
-          setSaveModal(CLOSED_SAVE_MODAL);
           try {
             const latest = await client.getFileByPath(filePath);
             setEditingNote((prev) =>
@@ -473,34 +630,47 @@ export function useGitHubNotebook(pat: string | null) {
         setSaving(false);
         return;
       }
-      clearInterval(pushTick);
 
-      // Push succeeded: re-baseline the editor and persist metadata.
+      // Push succeeded: re-baseline the editor, persist metadata, release the UI.
+      if (!editingNote) {
+        // The note now exists under its real path; drop the "new note" draft
+        // so it can't resurface as a stale restore prompt.
+        try {
+          localStorage.removeItem(draftStorageKey(`new:${selectedNotebook.name}`));
+        } catch {
+          /* ignore */
+        }
+      }
       setEditingNote((prev) =>
         prev
           ? { ...prev, sha: expectedSha, title, content }
           : { path: filePath, sha: expectedSha, title, content },
       );
       await commitMetadata(fileName, noteTitle);
+      setSaving(false);
 
-      // Phase 2: poll the file until its SHA matches what we just wrote.
-      setSaveModal({ open: true, step: 'syncing', progress: 50, error: null });
-      let syncProg = 50;
-      const syncTick = setInterval(() => {
-        syncProg = Math.min(syncProg + 1, 90);
-        setSaveModal((prev) => ({ ...prev, progress: syncProg }));
+      // Phase 2 (background): poll until the committed SHA is visible, then
+      // hand off to the deploy watcher. Surfaced via the SyncDock, not a modal.
+      if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+      setSyncing(true);
+      setSyncProgress(0);
+      let progress = 0;
+      syncIntervalRef.current = setInterval(() => {
+        progress = Math.min(progress + 2, 85);
+        setSyncProgress(progress);
       }, 150);
 
       const finish = async () => {
-        clearInterval(syncTick);
+        if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
         try {
           setNotes(await client.listNotes(selectedNotebook.name));
         } catch {
           /* listing refresh is best-effort */
         }
-        setSaveModal({ open: true, step: 'done', progress: 100, error: null });
-        setTimeout(() => setSaveModal(CLOSED_SAVE_MODAL), 1000);
-        setSaving(false);
+        setSyncProgress(100);
+        syncTimeoutRef.current = setTimeout(() => setSyncing(false), 600);
+        watchDeploy();
       };
 
       let attempts = 0;
@@ -515,12 +685,12 @@ export function useGitHubNotebook(pat: string | null) {
         } catch {
           /* transient — keep polling */
         }
-        if (attempts < 12) setTimeout(poll, 2000);
+        if (attempts < 12) syncTimeoutRef.current = setTimeout(poll, 2000);
         else await finish();
       };
-      setTimeout(poll, 1500);
+      syncTimeoutRef.current = setTimeout(poll, 1500);
     },
-    [client, selectedNotebook, editingNote, commitMetadata, notify],
+    [client, selectedNotebook, editingNote, commitMetadata, notify, watchDeploy],
   );
 
   // ── view helpers ────────────────────────────────────────────────────────────
@@ -549,12 +719,19 @@ export function useGitHubNotebook(pat: string | null) {
     refreshProgress,
     saveModal,
     notebookModal,
+    deployStatus,
+    deployUrl,
+    deletingNotebook,
     // operations
     fetchNotebooks,
     selectNotebook,
     openNewNotebook,
     createNotebook,
     deleteNote,
+    deleteNotebook,
+    moveNote,
+    quickCapture,
+    uploadImage,
     refreshAll,
     openNewNote,
     openNote,

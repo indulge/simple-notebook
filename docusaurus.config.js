@@ -32,6 +32,20 @@ const config = {
 
   plugins: ['./plugins/notebook-snapshot'],
 
+  themes: [
+    [
+      '@easyops-cn/docusaurus-search-local',
+      /** @type {import('@easyops-cn/docusaurus-search-local').PluginOptions} */
+      ({
+        hashed: true,
+        indexBlog: false,
+        indexPages: false,
+        docsRouteBasePath: 'read',
+        highlightSearchTermsOnTargetPage: true,
+      }),
+    ],
+  ],
+
   presets: [
     [
       'classic',
@@ -58,7 +72,21 @@ showLastUpdateTime: true,
       },
       navbar: {
         title: "Sachin's Notebook",
-        items: [],
+        items: [
+          {
+            type: 'docSidebar',
+            sidebarId: 'tutorialSidebar',
+            position: 'left',
+            label: 'Read',
+          },
+          { to: '/write', label: 'Write', position: 'left' },
+          { to: '/write?quick=1', label: '✏️ Quick note', position: 'right' },
+          {
+            href: 'https://github.com/indulge/sachin-notebook',
+            label: 'GitHub',
+            position: 'right',
+          },
+        ],
       },
       prism: {
         theme: prismThemes.github,

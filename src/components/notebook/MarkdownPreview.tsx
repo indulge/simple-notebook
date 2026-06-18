@@ -4,11 +4,17 @@
 
 import React from 'react';
 import BrowserOnly from '@docusaurus/BrowserOnly';
+import { RAW_BASE } from '@site/src/lib/notes';
 import { s } from './styles';
 
 // Provided by the Docusaurus webpack/rspack runtime; type-only so it is erased.
 declare function require(name: string): {
-  default: React.ComponentType<{ children: string; remarkPlugins: unknown[] }>;
+  default: React.ComponentType<{
+    children: string;
+    remarkPlugins: unknown[];
+    urlTransform: (url: string) => string;
+  }>;
+  defaultUrlTransform: (url: string) => string;
 };
 
 interface Props {
@@ -29,12 +35,22 @@ export default function MarkdownPreview({
   return (
     <BrowserOnly fallback={<div style={wrapperStyle}>Loading preview…</div>}>
       {() => {
-        const ReactMarkdown = require('react-markdown').default;
+        const { default: ReactMarkdown, defaultUrlTransform } = require('react-markdown');
         const remarkGfm = require('remark-gfm').default;
+        // Notes reference uploaded images as `/img/…` (a static/ path resolved
+        // by Docusaurus at build time on the published site). In the live
+        // preview the file may not be deployed yet, so serve it from the raw
+        // repo contents instead.
+        const transformUrl = (url: string) =>
+          url.startsWith('/img/')
+            ? `${RAW_BASE}/static${url}`
+            : defaultUrlTransform(url);
         return (
           <div style={wrapperStyle}>
             {React.createElement(headingLevel, { style: s.previewTitle }, title.trim() || 'Untitled')}
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={transformUrl}>
+              {content}
+            </ReactMarkdown>
           </div>
         );
       }}

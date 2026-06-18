@@ -92,9 +92,25 @@ export default function Home() {
 
   // Pull the live listing once on mount so the "Browse My Notes" link points at
   // the most recently published note. Failures keep the build-time seed.
+  // Results are cached in sessionStorage for a few minutes: unauthenticated
+  // GitHub reads are limited to ~60/hr per IP, and each refresh costs
+  // 1 + 2×notebooks requests — without the cache, a visitor bouncing between
+  // pages exhausts the limit quickly.
   const refresh = useCallback(async () => {
     try {
-      const live = await fetchLiveNotebooks();
+      const CACHE_KEY = 'nb_live_notebooks';
+      const CACHE_TTL_MS = 5 * 60 * 1000;
+      let live = null;
+      try {
+        const cached = JSON.parse(sessionStorage.getItem(CACHE_KEY) || 'null');
+        if (cached && Date.now() - cached.ts < CACHE_TTL_MS) live = cached.notebooks;
+      } catch { /* corrupt cache — refetch */ }
+      if (!live) {
+        live = await fetchLiveNotebooks();
+        try {
+          sessionStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), notebooks: live }));
+        } catch { /* storage unavailable — fine */ }
+      }
       live.sort((a, b) => {
         const ia = snapOrder.indexOf(a.dir);
         const ib = snapOrder.indexOf(b.dir);

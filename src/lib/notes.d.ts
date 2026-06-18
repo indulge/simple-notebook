@@ -11,8 +11,11 @@ export const OWNER: string;
 export const REPO: string;
 export const BRANCH: string;
 export const DOCS_PATH: string;
+export const REPO_API: string;
 export const API: string;
+export const RAW_BASE: string;
 
+export function draftStorageKey(id: string): string;
 export function slugify(text: string): string;
 export function b64Encode(str: string): string;
 export function b64Decode(str: string): string;

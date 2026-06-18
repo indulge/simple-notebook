@@ -8,7 +8,16 @@ export const OWNER = 'indulge';
 export const REPO = 'sachin-notebook';
 export const BRANCH = 'main';
 export const DOCS_PATH = 'docs';
-export const API = `https://api.github.com/repos/${OWNER}/${REPO}/contents`;
+export const REPO_API = `https://api.github.com/repos/${OWNER}/${REPO}`;
+export const API = `${REPO_API}/contents`;
+// Serves committed files immediately, before the Pages deploy finishes.
+export const RAW_BASE = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`;
+
+// localStorage key for the editor's unsaved-draft safety net. `id` is the
+// note's repo path, or `new:<notebook>` for a not-yet-created note.
+export function draftStorageKey(id) {
+  return `nb_draft:${id}`;
+}
 
 export function slugify(text) {
   return text.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');

@@ -7,7 +7,7 @@
 // auth token: holding it, hydrating it from localStorage, and toggling the
 // token dialog. Everything else is presentational wiring.
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Layout from '@theme/Layout';
 import ErrorBoundary from '@site/src/components/ErrorBoundary';
 import EmptyState from '@site/src/components/notebook/EmptyState';
@@ -35,6 +35,20 @@ function Workspace() {
   }, []);
 
   const nb = useGitHubNotebook(pat);
+
+  // `/write?quick=1` (the navbar's "Quick note") jumps straight into a blank
+  // note in the inbox notebook once the notebook listing has loaded.
+  const quickRequested =
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('quick');
+  const quickHandled = useRef(false);
+  const notebooksLoadedOnce = useRef(false);
+  if (nb.loadingNotebooks) notebooksLoadedOnce.current = true;
+  useEffect(() => {
+    if (!quickRequested || quickHandled.current) return;
+    if (!pat || nb.loadingNotebooks || !notebooksLoadedOnce.current) return;
+    quickHandled.current = true;
+    void nb.quickCapture();
+  }, [quickRequested, pat, nb]);
 
   const forgetToken = () => {
     localStorage.removeItem('gh_pat');
@@ -88,6 +102,8 @@ function Workspace() {
         selected={nb.selectedNotebook}
         onSelect={nb.selectNotebook}
         onNewNotebook={nb.openNewNotebook}
+        onDeleteNotebook={nb.deleteNotebook}
+        deletingNotebook={nb.deletingNotebook}
         loading={nb.loadingNotebooks}
         onRefresh={nb.refreshAll}
         refreshing={nb.refreshing}
@@ -110,6 +126,8 @@ function Workspace() {
               }
               onBack={nb.showList}
               onSave={nb.saveNote}
+              draftKey={nb.editingNote?.path ?? `new:${nb.selectedNotebook?.name ?? ''}`}
+              onUploadImage={nb.uploadImage}
               notebookName={nb.selectedNotebook?.name ?? ''}
               initialTitle={nb.editingNote?.title ?? ''}
               initialContent={nb.editingNote?.content ?? ''}
@@ -123,9 +141,11 @@ function Workspace() {
           <ErrorBoundary label="this notebook">
             <NoteList
               notebook={nb.selectedNotebook}
+              notebooks={nb.notebooks}
               notes={nb.notes}
               loading={nb.loadingNotes}
               onDeleteNote={nb.deleteNote}
+              onMoveNote={nb.moveNote}
               metadata={nb.metadata}
               onLoadNote={nb.loadNoteContent}
               onSaveNote={nb.saveNoteContent}
@@ -161,7 +181,13 @@ function Workspace() {
           onOpenNote={nb.openNote}
         />
       )}
-      <SyncDock saving={nb.saving} syncing={nb.syncing} refreshing={nb.refreshing} />
+      <SyncDock
+        saving={nb.saving}
+        syncing={nb.syncing}
+        refreshing={nb.refreshing}
+        deployStatus={nb.deployStatus}
+        deployUrl={nb.deployUrl}
+      />
       <button onClick={() => setShowTokenDialog(true)} style={s.forgetBtn} title="Change GitHub token">
         🔑
       </button>
