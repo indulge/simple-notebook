@@ -1,71 +1,20 @@
-// Central type definitions for the Write app (the GitHub-backed notebook editor).
+// Central type definitions for the Write app (the Drive-backed notebook editor).
 //
-// Grouped into three concerns:
-//   1. GitHub Contents API request/response shapes
-//   2. Domain models (notebooks, notes, per-notebook metadata)
-//   3. UI / editor lifecycle state (draft → saving → committed → error)
-//
-// The pure runtime helpers live in `src/lib/notes.js`, which stays JavaScript
-// because it is also imported by the Node build chain (sidebars.js, the
-// notebook-snapshot plugin) where `.ts` cannot be resolved. These interfaces
-// describe the same data shapes that module produces and consumes.
+// Grouped into two concerns:
+//   1. Domain models (notebooks, notes, per-notebook metadata)
+//   2. UI / editor lifecycle state (draft → saving → error)
 
-// ── 1. GitHub Contents API ───────────────────────────────────────────────────
+// ── 1. Domain models ─────────────────────────────────────────────────────────
 
-/** A single entry returned when listing a directory via the Contents API. */
-export interface GitHubContentEntry {
-  name: string;
-  path: string;
-  sha: string;
-  type: 'file' | 'dir' | 'symlink' | 'submodule';
-}
-
-/** Response of GET on a single file (`content` is base64-encoded). */
-export interface GitHubFileResponse {
-  name: string;
-  path: string;
-  sha: string;
-  content: string;
-  encoding: string;
-}
-
-/** Body of a PUT (create/update) request against the Contents API. */
-export interface GitHubPutRequest {
-  message: string;
-  /** base64-encoded file content. */
-  content: string;
-  branch: string;
-  /** Required when updating an existing file; omitted when creating. */
-  sha?: string;
-}
-
-/** Body of a DELETE request against the Contents API. */
-export interface GitHubDeleteRequest {
-  message: string;
-  sha: string;
-  branch: string;
-}
-
-/** Response of a successful PUT — `content.sha` is the new blob SHA. */
-export interface GitHubWriteResponse {
-  content: { sha: string; path: string; name: string } | null;
-  commit: { sha: string };
-}
-
-/** Error envelope GitHub returns for 4xx/5xx responses. */
-export interface GitHubErrorResponse {
-  message: string;
-  documentation_url?: string;
-}
-
-// ── 2. Domain models ─────────────────────────────────────────────────────────
-
-/** A notebook is a directory under `docs/`. */
+/** A notebook is a Drive subfolder under the root "simple-notebook" folder. */
 export interface Notebook {
   name: string;
 }
 
-/** A note file (`*.md`/`*.mdx`) inside a notebook directory. */
+/**
+ * A note file (`*.md`/`*.mdx`) inside a notebook folder.
+ * `sha` holds the Drive file ID, used for delete and update operations.
+ */
 export interface NoteFile {
   name: string;
   sha: string | null;
@@ -83,18 +32,18 @@ export interface NoteMetadata {
   updated: Record<string, number>;
 }
 
-/** Metadata plus the blob SHA needed to commit the next update to it. */
+/** Metadata plus the Drive file ID of `_metadata.json` (in the `sha` field). */
 export interface NotebookMetadataState extends NoteMetadata {
   sha: string | null;
 }
 
-/** A note's body together with the SHA required to update it. */
+/** A note's body together with the Drive file ID required to update it. */
 export interface NoteContent {
   content: string;
   sha: string | null;
 }
 
-// ── 3. UI / editor lifecycle ─────────────────────────────────────────────────
+// ── 2. UI / editor lifecycle ─────────────────────────────────────────────────
 
 /** Lifecycle of an editable note: a clean state machine for the UI to render. */
 export type NoteLifecycle = 'idle' | 'draft' | 'saving' | 'committed' | 'error';
@@ -127,17 +76,6 @@ export interface NotebookModalState {
 
 /** Whether a sync poll waits for a file to appear or to disappear. */
 export type SyncMode = 'appeared' | 'gone';
-
-/** A GitHub Actions workflow run, as far as the deploy badge cares. */
-export interface DeployRun {
-  status: string;
-  conclusion: string | null;
-  url: string;
-  createdAt: number;
-}
-
-/** Pages-deploy state shown in the SyncDock after a save lands on main. */
-export type DeployStatus = 'deploying' | 'live' | 'failed' | null;
 
 /** A transient, user-facing notification (toast). */
 export interface AppNotification {

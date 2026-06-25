@@ -1,5 +1,5 @@
-// Progress modal for the full-screen editor save (push → sync → done/error).
-// Pure presentation driven by the `saveModal` state the data hook owns.
+// Error modal for the full-screen editor save. Shown only when a save fails;
+// the success path never opens this modal (Drive writes complete synchronously).
 
 import React from 'react';
 import type { SaveModalStep } from '@site/src/types';
@@ -13,8 +13,8 @@ interface Props {
 }
 
 const INFO: Record<string, { label: string; color: string }> = {
-  pushing: { label: 'Pushing to GitHub…', color: 'var(--ifm-color-primary)' },
-  syncing: { label: 'Verifying in repository…', color: 'var(--ifm-color-primary)' },
+  pushing: { label: 'Saving to Drive…', color: 'var(--ifm-color-primary)' },
+  syncing: { label: 'Verifying…', color: 'var(--ifm-color-primary)' },
   done: { label: '✓ Saved successfully!', color: '#38a169' },
   error: { label: '✕ Save failed', color: '#e53e3e' },
 };

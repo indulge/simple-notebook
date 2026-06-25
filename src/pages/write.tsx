@@ -1,11 +1,10 @@
 // The notebook workspace page.
 //
 // This component is intentionally thin: all data + control logic lives in the
-// `useGitHubNotebook` hook (which talks to the GitHub service), all network
-// failures surface through the `NotificationProvider`, and every render-time
-// throw is caught by `ErrorBoundary`. The page's only local concern is the
-// auth token: holding it, hydrating it from localStorage, and toggling the
-// token dialog. Everything else is presentational wiring.
+// `useDriveNotebook` hook (which talks to Google Drive), all network failures
+// surface through the `NotificationProvider`, and every render-time throw is
+// caught by `ErrorBoundary`. The page's only local concern is the auth token:
+// holding it, hydrating it from localStorage, and toggling the token dialog.
 
 import React, { useEffect, useRef, useState } from 'react';
 import Layout from '@theme/Layout';
@@ -22,22 +21,19 @@ import SyncDock from '@site/src/components/notebook/SyncDock';
 import TokenGate from '@site/src/components/notebook/TokenGate';
 import { s } from '@site/src/components/notebook/styles';
 import { NotificationProvider } from '@site/src/hooks/useNotifications';
-import { useGitHubNotebook } from '@site/src/hooks/useGitHubNotebook';
+import { useDriveNotebook } from '@site/src/hooks/useDriveNotebook';
 
 function Workspace() {
-  // The auth token is the page's only owned state. `null` until hydrated.
-  const [pat, setPat] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [showTokenDialog, setShowTokenDialog] = useState(false);
 
   useEffect(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('gh_pat') : null;
-    if (saved) setPat(saved);
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('gd_token') : null;
+    if (saved) setToken(saved);
   }, []);
 
-  const nb = useGitHubNotebook(pat);
+  const nb = useDriveNotebook(token);
 
-  // `/write?quick=1` (the navbar's "Quick note") jumps straight into a blank
-  // note in the inbox notebook once the notebook listing has loaded.
   const quickRequested =
     typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('quick');
   const quickHandled = useRef(false);
@@ -45,27 +41,27 @@ function Workspace() {
   if (nb.loadingNotebooks) notebooksLoadedOnce.current = true;
   useEffect(() => {
     if (!quickRequested || quickHandled.current) return;
-    if (!pat || nb.loadingNotebooks || !notebooksLoadedOnce.current) return;
+    if (!token || nb.loadingNotebooks || !notebooksLoadedOnce.current) return;
     quickHandled.current = true;
     void nb.quickCapture();
-  }, [quickRequested, pat, nb]);
+  }, [quickRequested, token, nb]);
 
   const forgetToken = () => {
-    localStorage.removeItem('gh_pat');
-    setPat(null);
+    localStorage.removeItem('gd_token');
+    setToken(null);
     setShowTokenDialog(false);
   };
 
-  if (!pat && !showTokenDialog) {
-    return <TokenGate onAuthenticated={setPat} />;
+  if (!token && !showTokenDialog) {
+    return <TokenGate onAuthenticated={setToken} />;
   }
 
   if (showTokenDialog) {
     return (
       <TokenGate
-        onAuthenticated={(token) => {
+        onAuthenticated={(t) => {
           forgetToken();
-          setPat(token);
+          setToken(t);
           setShowTokenDialog(false);
         }}
         onDismiss={() => setShowTokenDialog(false)}
@@ -185,10 +181,8 @@ function Workspace() {
         saving={nb.saving}
         syncing={nb.syncing}
         refreshing={nb.refreshing}
-        deployStatus={nb.deployStatus}
-        deployUrl={nb.deployUrl}
       />
-      <button onClick={() => setShowTokenDialog(true)} style={s.forgetBtn} title="Change GitHub token">
+      <button onClick={() => setShowTokenDialog(true)} style={s.forgetBtn} title="Change Drive token">
         🔑
       </button>
     </div>
@@ -198,7 +192,6 @@ function Workspace() {
 export default function NotebookPage() {
   return (
     <Layout title="Notebook" description="Write notes">
-      {/* The provider must wrap Workspace: useGitHubNotebook reports via useNotifications. */}
       <NotificationProvider>
         <ErrorBoundary label="the notebook">
           <Workspace />

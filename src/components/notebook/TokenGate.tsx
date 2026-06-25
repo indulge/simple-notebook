@@ -1,9 +1,9 @@
-// GitHub personal-access-token capture + validation. Verification goes through
-// the service (a throwaway client for the entered token) so this component
-// holds no fetch logic of its own.
+// Google Drive access-token capture + validation. The token (a standard OAuth
+// 2.0 bearer token) is pasted in, verified against the Drive API, and stored
+// in localStorage as `gd_token` — same pattern as the old GitHub PAT gate.
 
 import React, { useState } from 'react';
-import { createGitHubClient } from '@site/src/services/github';
+import { DriveNotebookClient } from '@site/src/services/googledrive';
 import { s } from './styles';
 
 interface Props {
@@ -22,13 +22,13 @@ export default function TokenGate({ onAuthenticated, onDismiss }: Props) {
     setTesting(true);
     setError('');
     try {
-      const ok = await createGitHubClient(token).verify();
+      const ok = await new DriveNotebookClient(token).verify();
       if (ok) {
-        localStorage.setItem('gh_pat', token);
+        localStorage.setItem('gd_token', token);
         onAuthenticated(token);
       } else {
         setError(
-          'Token rejected by GitHub. Check that it can access this repository with Contents read/write.',
+          'Token rejected by Google Drive. Make sure it is a valid OAuth access token with Drive scope.',
         );
       }
     } catch {
@@ -45,23 +45,15 @@ export default function TokenGate({ onAuthenticated, onDismiss }: Props) {
             ✕
           </button>
         )}
-        <h2 style={{ margin: '0 0 8px' }}>Connect to GitHub</h2>
+        <h2 style={{ margin: '0 0 8px' }}>Connect to Google Drive</h2>
         <p style={{ margin: '0 0 20px', color: 'var(--ifm-color-emphasis-600)', fontSize: 14 }}>
-          Paste a GitHub Personal Access Token to start writing notes. Use a{' '}
-          <a
-            href="https://github.com/settings/personal-access-tokens/new"
-            target="_blank"
-            rel="noreferrer"
-          >
-            fine-grained token
-          </a>{' '}
-          scoped to <strong>only this repository</strong> with{' '}
-          <code>Contents: Read and write</code> permission — safer than a classic{' '}
-          <code>repo</code>-scope token, which grants access to all your repos.
+          Paste a Google OAuth access token to start writing notes. The token needs the{' '}
+          <code>https://www.googleapis.com/auth/drive</code> scope. It stays on this device
+          and is never sent anywhere other than Google's API.
         </p>
         <input
           type="password"
-          placeholder="github_pat_… or ghp_…"
+          placeholder="ya29.…"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSave()}
