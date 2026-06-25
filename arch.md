@@ -4,7 +4,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────┐
-│                          GitHub Repository (indulge/sachin-notebook)                │
+│                          GitHub Repository (indulge/simple-notebook)                │
 │                                                                                     │
 │   docs/                                  .github/workflows/deploy.yml               │
 │   ├── <notebook>/                        ┌────────────────────────┐                 │
@@ -23,12 +23,12 @@
 ┌──────────────────────────▼──────────────────────────────────────────────────────────┐
 │                          Browser (React 19 + Docusaurus 3)                          │
 │                                                                                     │
-│  Route: /sachin-notebook/                                                           │
+│  Route: /simple-notebook/                                                           │
 │  ┌─────────────────────────────────────────────────────────────────────────────┐   │
 │  │  src/pages/homepage.js  (home page — links to /read and /write)             │   │
 │  └─────────────────────────────────────────────────────────────────────────────┘   │
 │                                                                                     │
-│  Route: /sachin-notebook/read/*    ← Static docs generated at build time           │
+│  Route: /simple-notebook/read/*    ← Static docs generated at build time           │
 │  ┌─────────────────────────────────────────────────────────────────────────────┐   │
 │  │  Docusaurus Docs                                                             │   │
 │  │  sidebars.js ─── readNotebooksFromDisk(docs/)                               │   │
@@ -36,7 +36,7 @@
 │  │                  └── notebooksFs.js ── notes.js (shared utils)              │   │
 │  └─────────────────────────────────────────────────────────────────────────────┘   │
 │                                                                                     │
-│  Route: /sachin-notebook/write     ← Interactive SPA (client-side only)            │
+│  Route: /simple-notebook/write     ← Interactive SPA (client-side only)            │
 │  ┌─────────────────────────────────────────────────────────────────────────────┐   │
 │  │  src/pages/write.tsx                                                         │   │
 │  │  State: pat (GitHub token), showTokenDialog                                  │   │
@@ -244,7 +244,7 @@ GitHub Actions: deploy.yml
       │   └─ Output: build/
       │
       └─ Deploy build/ → GitHub Pages
-             └─ Live at: https://indulge.github.io/sachin-notebook/
+             └─ Live at: https://indulge.github.io/simple-notebook/
 ```
 
 ---

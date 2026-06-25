@@ -12,10 +12,10 @@ const config = {
   },
 
   url: 'https://indulge.github.io',
-  baseUrl: '/sachin-notebook/',
+  baseUrl: '/simple-notebook/',
 
   organizationName: 'indulge',
-  projectName: 'sachin-notebook',
+  projectName: 'simple-notebook',
   trailingSlash: false,
 
   onBrokenLinks: 'throw',
@@ -82,7 +82,7 @@ showLastUpdateTime: true,
           { to: '/write', label: 'Write', position: 'left' },
           { to: '/write?quick=1', label: '✏️ Quick note', position: 'right' },
           {
-            href: 'https://github.com/indulge/sachin-notebook',
+            href: 'https://github.com/indulge/simple-notebook',
             label: 'GitHub',
             position: 'right',
           },

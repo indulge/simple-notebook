@@ -5,7 +5,7 @@
 // browser- or Node-only APIs at the top level — atob/btoa are globals in both.
 
 export const OWNER = 'indulge';
-export const REPO = 'sachin-notebook';
+export const REPO = 'simple-notebook';
 export const BRANCH = 'main';
 export const DOCS_PATH = 'docs';
 export const REPO_API = `https://api.github.com/repos/${OWNER}/${REPO}`;

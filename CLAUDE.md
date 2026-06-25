@@ -6,14 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A public notebook site for Sachin, built with [Docusaurus 3](https://docusaurus.io) and deployed to GitHub Pages via GitHub Actions.
 
-- Live site: `https://indulge.github.io/sachin-notebook/`
-- GitHub repo: `https://github.com/indulge/sachin-notebook`
+- Live site: `https://indulge.github.io/simple-notebook/`
+- GitHub repo: `https://github.com/indulge/simple-notebook`
 
 ## Local Development
 
 ```bash
 npm install
-npm start        # dev server at http://localhost:3000/sachin-notebook/
+npm start        # dev server at http://localhost:3000/simple-notebook/
 npm run build    # production build to build/
 ```
 
@@ -22,17 +22,17 @@ npm run build    # production build to build/
 Pushing to `main` triggers `.github/workflows/deploy.yml`, which builds and deploys to GitHub Pages automatically. To watch a deployment:
 
 ```bash
-gh run watch $(gh run list --repo indulge/sachin-notebook --limit 1 --json databaseId -q '.[0].databaseId') --repo indulge/sachin-notebook
+gh run watch $(gh run list --repo indulge/simple-notebook --limit 1 --json databaseId -q '.[0].databaseId') --repo indulge/simple-notebook
 ```
 
 ## Verifying Visual Changes
 
 For any request involving visible appearance changes:
 
-1. **Before:** Fetch `https://indulge.github.io/sachin-notebook/` and note the current state
+1. **Before:** Fetch `https://indulge.github.io/simple-notebook/` and note the current state
 2. Make the change — run `npm run build` locally to confirm it passes
 3. Commit, push, and wait for the GitHub Actions deployment to complete
-4. **After:** Fetch `https://indulge.github.io/sachin-notebook/` again and confirm the change is live
+4. **After:** Fetch `https://indulge.github.io/simple-notebook/` again and confirm the change is live
 
 > WebFetch has a 15-minute cache. Always wait for the Actions run to finish before fetching, and be aware the cached result may lag the live site.
 

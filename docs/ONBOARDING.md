@@ -2,14 +2,14 @@
 
 ## Project Overview
 
-**sachin-notebook** is a personal notes, tutorials, and references site — mostly covering AI, tooling, and software engineering. It is built with **Docusaurus 3** (React 19) and deployed to **GitHub Pages** via GitHub Actions.
+**simple-notebook** is a personal notes, tutorials, and references site — mostly covering AI, tooling, and software engineering. It is built with **Docusaurus 3** (React 19) and deployed to **GitHub Pages** via GitHub Actions.
 
 What makes it unusual: it is not just a static site. It includes a **git-backed notebook workspace** at `/write` where notes are read and written directly through the **GitHub Contents API** — every save is a real GitHub commit that triggers an automatic site rebuild and redeploy.
 
 **Languages:** TypeScript, JavaScript, CSS, Markdown, YAML  
 **Frameworks:** Docusaurus 3.10.1, React 19, GitHub Actions  
-**Live site:** `https://indulge.github.io/sachin-notebook/`  
-**Local dev:** `npm install && npm start` → `http://localhost:3000/sachin-notebook/`
+**Live site:** `https://indulge.github.io/simple-notebook/`  
+**Local dev:** `npm install && npm start` → `http://localhost:3000/simple-notebook/`
 
 ---
 
