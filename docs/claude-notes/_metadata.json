@@ -1,3 +1,17 @@
 {
-  "claude-workshop-1.md": "Claude Code Workshop 1"
+  "titles": {
+    "claude-workshop-1.md": "Claude Code Workshop 1",
+    "claude-workshop-2.md": "Claude Code Workshop 2",
+    "claude-workshop-3.md": "Claude Code Workshop 3",
+    "claude-workshop-4.md": "Claude Code Workshop 4",
+    "claude-code-extension-points.md": "Extension Points Reference"
+  },
+  "order": [
+    "claude-workshop-1.md",
+    "claude-workshop-2.md",
+    "claude-workshop-3.md",
+    "claude-workshop-4.md",
+    "claude-code-extension-points.md"
+  ],
+  "updated": {}
 }
