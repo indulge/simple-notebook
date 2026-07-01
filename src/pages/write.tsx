@@ -1,10 +1,8 @@
-// The notebook workspace page.
+// Notebook workspace page.
 //
-// This component is intentionally thin: all data + control logic lives in the
-// `useDriveNotebook` hook (which talks to Google Drive), all network failures
-// surface through the `NotificationProvider`, and every render-time throw is
-// caught by `ErrorBoundary`. The page's only local concern is the auth token:
-// holding it, hydrating it from localStorage, and toggling the token dialog.
+// Notes are always stored locally in IndexedDB; connecting a Google Drive token
+// is optional and enables cross-device sync. The workspace opens immediately
+// without requiring any token.
 
 import React, { useEffect, useRef, useState } from 'react';
 import Layout from '@theme/Layout';
@@ -21,50 +19,46 @@ import SyncDock from '@site/src/components/notebook/SyncDock';
 import TokenGate from '@site/src/components/notebook/TokenGate';
 import { s } from '@site/src/components/notebook/styles';
 import { NotificationProvider } from '@site/src/hooks/useNotifications';
-import { useDriveNotebook } from '@site/src/hooks/useDriveNotebook';
+import { useNotebook } from '@site/src/hooks/useNotebook';
 
 function Workspace() {
   const [token, setToken] = useState<string | null>(null);
-  const [showTokenDialog, setShowTokenDialog] = useState(false);
+  const [showDriveDialog, setShowDriveDialog] = useState(false);
 
   useEffect(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem('gd_token') : null;
     if (saved) setToken(saved);
   }, []);
 
-  const nb = useDriveNotebook(token);
+  const nb = useNotebook(token);
 
   const quickRequested =
     typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('quick');
   const quickHandled = useRef(false);
-  const notebooksLoadedOnce = useRef(false);
-  if (nb.loadingNotebooks) notebooksLoadedOnce.current = true;
   useEffect(() => {
     if (!quickRequested || quickHandled.current) return;
-    if (!token || nb.loadingNotebooks || !notebooksLoadedOnce.current) return;
+    if (!nb.dbReady) return;
     quickHandled.current = true;
     void nb.quickCapture();
-  }, [quickRequested, token, nb]);
+  }, [quickRequested, nb.dbReady, nb]);
 
-  const forgetToken = () => {
-    localStorage.removeItem('gd_token');
-    setToken(null);
-    setShowTokenDialog(false);
+  const connectDrive = (t: string) => {
+    setToken(t);
+    setShowDriveDialog(false);
   };
 
-  if (!token && !showTokenDialog) {
-    return <TokenGate onAuthenticated={setToken} />;
-  }
+  const disconnectDrive = () => {
+    localStorage.removeItem('gd_token');
+    setToken(null);
+    setShowDriveDialog(false);
+  };
 
-  if (showTokenDialog) {
+  if (showDriveDialog) {
     return (
       <TokenGate
-        onAuthenticated={(t) => {
-          forgetToken();
-          setToken(t);
-          setShowTokenDialog(false);
-        }}
-        onDismiss={() => setShowTokenDialog(false)}
+        onAuthenticated={connectDrive}
+        onDismiss={() => setShowDriveDialog(false)}
+        onSkip={() => setShowDriveDialog(false)}
       />
     );
   }
@@ -182,9 +176,25 @@ function Workspace() {
         syncing={nb.syncing}
         refreshing={nb.refreshing}
       />
-      <button onClick={() => setShowTokenDialog(true)} style={s.forgetBtn} title="Change Drive token">
-        🔑
+      <button
+        onClick={() => setShowDriveDialog(true)}
+        style={{
+          ...s.forgetBtn,
+          backgroundColor: token ? 'var(--ifm-color-primary-lightest)' : undefined,
+        }}
+        title={token ? 'Drive connected — click to manage' : 'Connect Google Drive'}
+      >
+        {token ? '☁' : '🔗'}
       </button>
+      {token && (
+        <button
+          onClick={disconnectDrive}
+          style={{ ...s.forgetBtn, right: 98 }}
+          title="Disconnect Drive"
+        >
+          ✕
+        </button>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 // Google Drive REST client — the single network boundary for the notebook
 // write workspace. Replaces the GitHub Contents API client; the public surface
-// mirrors it so the hook layer (useDriveNotebook) needs minimal changes.
+// mirrors it so the hook layer (useNotebook) needs minimal changes.
 //
 // Storage layout in the user's Drive:
 //   simple-notebook/           ← root folder (created on first use)
