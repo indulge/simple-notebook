@@ -54,7 +54,9 @@ const config = {
         docs: {
           routeBasePath: 'read',
           sidebarPath: './sidebars.js',
-showLastUpdateTime: true,
+          showLastUpdateTime: true,
+          // Published notes carry ad-hoc frontmatter tags — no tags.yml registry.
+          onInlineTags: 'ignore',
         },
         blog: false,
         theme: {

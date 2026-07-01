@@ -1,3 +1,21 @@
+# Changelog
+
+## 2026-07-02 — Offline-first storage, tags, selective publishing
+
+### Offline-first notebook (IndexedDB primary)
+Notes are always stored locally in IndexedDB (`src/lib/localDb.ts`); the workspace opens with no token at all. Connecting Google Drive is optional and enables cross-device sync — writes go to IndexedDB immediately and sync to Drive in the background, with an offline queue that drains when a token arrives (`useNotebook` replaces `useDriveNotebook`).
+
+### Note tags
+Notes can be marked with tags from the full-screen editor or the inline tile editor. The tag picker suggests existing tags (union across all notebooks) and creates new ones on Enter/comma. Tags live in each notebook's `_metadata.json` (`tags` field), sync to Drive, and render as chips on note tiles.
+
+### Selective publish to the reading site
+A new ⇪ button opens the Publish dialog: pick notebooks, connect a GitHub token (fine-grained PAT, repo contents read/write), and sync them to `docs/` in a single commit via the Git Data API. GitHub Actions then deploys the public read-mode site. Tagged notes are published with YAML frontmatter (`title`, `tags`) so Docusaurus shows tags in read mode. Deleting remote notes that no longer exist locally is opt-in (checkbox, default off).
+
+### Branch consolidation
+Merged `docs/concepts-map` (CONCEPTS.md), `docs/claude-code-extension-points` (extension-points reference), and the `origin/main` content commits (workshop notes). The `vite-migration` branch was intentionally not merged — it replaces the Docusaurus architecture wholesale and is incompatible with the current site.
+
+---
+
 # Changelog — fable-test branch
 
 ## Key Features & Fixes

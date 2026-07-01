@@ -13,6 +13,7 @@ import NoteEditor from '@site/src/components/notebook/NoteEditor';
 import MiniNotebookGrid from '@site/src/components/notebook/MiniNotebookGrid';
 import NoteList from '@site/src/components/notebook/NoteList';
 import NotebookModal from '@site/src/components/notebook/NotebookModal';
+import PublishModal from '@site/src/components/notebook/PublishModal';
 import SaveModal from '@site/src/components/notebook/SaveModal';
 import Sidebar from '@site/src/components/notebook/Sidebar';
 import SyncDock from '@site/src/components/notebook/SyncDock';
@@ -24,6 +25,7 @@ import { useNotebook } from '@site/src/hooks/useNotebook';
 function Workspace() {
   const [token, setToken] = useState<string | null>(null);
   const [showDriveDialog, setShowDriveDialog] = useState(false);
+  const [showPublishDialog, setShowPublishDialog] = useState(false);
 
   useEffect(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem('gd_token') : null;
@@ -179,6 +181,13 @@ function Workspace() {
         syncing={nb.syncing}
         refreshing={nb.refreshing}
       />
+      {showPublishDialog && (
+        <PublishModal
+          notebooks={nb.notebooks}
+          driveToken={token}
+          onClose={() => setShowPublishDialog(false)}
+        />
+      )}
       <button
         onClick={() => setShowDriveDialog(true)}
         style={{
@@ -188,6 +197,13 @@ function Workspace() {
         title={token ? 'Drive connected — click to manage' : 'Connect Google Drive'}
       >
         {token ? '☁' : '🔗'}
+      </button>
+      <button
+        onClick={() => setShowPublishDialog(true)}
+        style={{ ...s.forgetBtn, right: 57 }}
+        title="Publish notebooks to the reading site"
+      >
+        ⇪
       </button>
       {token && (
         <button
