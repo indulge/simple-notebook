@@ -85,8 +85,16 @@ export async function verifyGitHubToken(token: string): Promise<boolean> {
   try {
     const res = await fetch(REPO_API, { headers: headers(token, false) });
     if (!res.ok) return false;
+    // Classic PATs advertise their scopes; a scope-less classic token can
+    // still read a public repo (and report the OWNER's push role), so check
+    // the token's own scopes when the header is present. Fine-grained PATs
+    // omit the header — for those, permissions reflects the token's grants.
+    const scopes = res.headers.get('x-oauth-scopes');
+    if (scopes !== null && scopes.trim() !== '') {
+      const list = scopes.split(',').map(sc => sc.trim());
+      if (!list.includes('repo') && !list.includes('public_repo')) return false;
+    }
     const repo = (await res.json()) as { permissions?: { push?: boolean } };
-    // `permissions` is present for authenticated requests; require push.
     return repo.permissions?.push === true;
   } catch {
     return false;

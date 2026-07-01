@@ -31,8 +31,8 @@ export interface LocalMeta {
 
 export interface SyncQueueItem {
   id?: number;         // auto-increment
-  op: 'upsert' | 'delete';
-  path: string;
+  op: 'upsert' | 'delete' | 'deleteNotebook';
+  path: string;        // note path, or "notebook:<name>" for deleteNotebook
   notebook: string;
   name: string;
   content?: string;
@@ -154,11 +154,27 @@ export const localDb = {
 
   // ── Sync queue ─────────────────────────────────────────────────────────────
 
-  enqueue: (item: Omit<SyncQueueItem, 'id'>) => rput('syncQueue', item).then(() => {}),
+  // A new item supersedes any queued item for the same path — the queue holds
+  // at most one pending operation per path, always the latest.
+  async enqueue(item: Omit<SyncQueueItem, 'id'>): Promise<void> {
+    const all = await rgetAll<SyncQueueItem>('syncQueue');
+    await Promise.all(
+      all.filter(q => q.path === item.path && q.id != null).map(q => rdel('syncQueue', q.id!)),
+    );
+    await rput('syncQueue', item);
+  },
 
   getQueue: () => rgetAll<SyncQueueItem>('syncQueue'),
 
   dequeue: (id: number) => rdel('syncQueue', id),
+
+  // Drop queued work for a notebook (used before queueing its deletion).
+  async removeQueuedForNotebook(notebook: string): Promise<void> {
+    const all = await rgetAll<SyncQueueItem>('syncQueue');
+    await Promise.all(
+      all.filter(q => q.notebook === notebook && q.id != null).map(q => rdel('syncQueue', q.id!)),
+    );
+  },
 
   clearQueue: () => rclear('syncQueue'),
 };

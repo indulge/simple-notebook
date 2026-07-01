@@ -39,54 +39,94 @@ function toMetaState(m: LocalMeta): NotebookMetadataState {
 }
 
 /**
+ * Merge local and Drive metadata per file: for each note, the side with the
+ * newer `updated` timestamp wins its title/tags/timestamp. The order comes
+ * from the overall-newer side, with the other side's extra files appended.
+ * Never discards a file only one side knows about — a note created offline
+ * keeps its title and tags even when Drive has newer edits elsewhere.
+ */
+function mergeMetadata(local: LocalMeta | null, drive: NotebookMetadataState): NoteMetadata {
+  const dTags = drive.tags ?? {};
+  if (!local) return { titles: drive.titles, order: drive.order, updated: drive.updated, tags: dTags };
+  const lTags = local.tags ?? {};
+
+  const files = new Set<string>([
+    ...Object.keys(local.updated), ...Object.keys(drive.updated),
+    ...Object.keys(local.titles), ...Object.keys(drive.titles),
+    ...local.order, ...drive.order,
+  ]);
+
+  const titles: Record<string, string> = {};
+  const updated: Record<string, number> = {};
+  const tags: Record<string, string[]> = {};
+  for (const f of files) {
+    const lu = local.updated[f] ?? 0;
+    const du = drive.updated[f] ?? 0;
+    const [t, u, g] = lu >= du
+      ? [local.titles[f], lu, lTags[f]]
+      : [drive.titles[f], du, dTags[f]];
+    if (t !== undefined) titles[f] = t;
+    if (u) updated[f] = u;
+    if (g?.length) tags[f] = g;
+  }
+
+  const maxLocal = Object.values(local.updated).reduce((a, b) => Math.max(a, b), 0);
+  const maxDrive = Object.values(drive.updated).reduce((a, b) => Math.max(a, b), 0);
+  const [base, other] = maxLocal >= maxDrive ? [local.order, drive.order] : [drive.order, local.order];
+  const order = [...base, ...other.filter(f => !base.includes(f))];
+
+  return { titles, order, updated, tags };
+}
+
+/**
  * Pull a notebook's notes + metadata from Drive into IndexedDB, keeping
- * whichever side is newer per note. Returns true when IDB was updated with a
- * fresher metadata snapshot (callers should re-read). Shared by the workspace
- * (notebook open) and the GitHub publish flow.
+ * whichever side is newer per note (content and metadata are both merged at
+ * per-note granularity, so saves landing mid-pull are not clobbered).
+ * Returns true when IDB metadata changed (callers should re-read). Shared by
+ * the workspace (notebook open) and the GitHub publish flow.
  */
 export async function pullNotebookFromDrive(
   d: DriveNotebookClient,
   notebook: string,
 ): Promise<boolean> {
-  const [localNotes, localMeta] = await Promise.all([
-    localDb.getNotes(notebook),
-    localDb.getMetadata(notebook),
-  ]);
   const [driveNotes, driveMeta] = await Promise.all([
     d.listNotes(notebook),
     d.getMetadata(notebook),
   ]);
 
-  const localNoteMap = new Map(localNotes.map(n => [n.name, n]));
-
   for (const dn of driveNotes) {
-    const ln = localNoteMap.get(dn.name);
     const driveUpdated = driveMeta.updated[dn.name] ?? 0;
-    const localUpdated = ln?.updatedAt ?? 0;
-    if (!ln || driveUpdated > localUpdated) {
+    const ln = await localDb.getNote(dn.path);
+    if (!ln || driveUpdated > ln.updatedAt) {
       try {
         const { content } = await d.getNote(notebook, dn.name);
-        await localDb.putNote({
-          path: dn.path, notebook, name: dn.name,
-          content, updatedAt: driveUpdated || Date.now(), driveId: dn.sha,
-        });
+        // Re-check after the fetch — a save may have landed meanwhile.
+        const cur = await localDb.getNote(dn.path);
+        if (!cur || driveUpdated > cur.updatedAt) {
+          await localDb.putNote({
+            path: dn.path, notebook, name: dn.name,
+            content, updatedAt: driveUpdated || Date.now(), driveId: dn.sha,
+          });
+        }
       } catch { /* skip if fetch fails */ }
     }
   }
 
-  // Adopt Drive's metadata when Drive is overall newer.
-  const maxDriveTs = Object.values(driveMeta.updated).reduce((a, b) => Math.max(a, b), 0);
-  const maxLocalTs = localMeta ? Object.values(localMeta.updated).reduce((a, b) => Math.max(a, b), 0) : 0;
-  if (maxDriveTs > maxLocalTs) {
-    await localDb.putMetadata({
-      notebook,
-      titles: driveMeta.titles, order: driveMeta.order,
-      updated: driveMeta.updated, tags: driveMeta.tags,
-      driveMetaId: driveMeta.sha,
-    });
-    return true;
-  }
-  return false;
+  // Merge metadata against a FRESH local read (the slow per-note loop above
+  // may have raced with user saves).
+  const localMeta = await localDb.getMetadata(notebook);
+  const merged = mergeMetadata(localMeta, driveMeta);
+  const next: LocalMeta = {
+    notebook,
+    ...merged,
+    driveMetaId: driveMeta.sha ?? localMeta?.driveMetaId ?? null,
+  };
+  const before = localMeta
+    ? JSON.stringify(toMetaState(localMeta))
+    : null;
+  if (before === JSON.stringify(toMetaState(next))) return false;
+  await localDb.putMetadata(next);
+  return true;
 }
 
 export function useNotebook(token: string | null) {
@@ -155,20 +195,45 @@ export function useNotebook(token: string | null) {
 
       setSyncing(true);
 
-      // 1. Process pending sync queue
+      // 1. Process pending sync queue. Replays read the CURRENT note from IDB
+      // (not the snapshot captured at enqueue time) so a stale item can never
+      // overwrite newer content or double-create a file.
       const queue = await localDb.getQueue();
+      const touched = new Set<string>();
       for (const item of queue) {
         if (cancelled) break;
         try {
-          if (item.op === 'upsert' && item.content !== undefined) {
-            const newId = await drive.putFile(item.path, '', item.content, item.driveId ?? null);
+          if (item.op === 'upsert') {
             const note = await localDb.getNote(item.path);
-            if (note) await localDb.putNote({ ...note, driveId: newId });
+            if (note) {
+              const newId = await drive.putFile(note.path, '', note.content, note.driveId);
+              await localDb.putNote({ ...note, driveId: newId });
+              touched.add(item.notebook);
+            }
+            // note deleted since it was queued — nothing to push
           } else if (item.op === 'delete' && item.driveId) {
             await drive.deleteFile(item.path, item.driveId, '');
+            touched.add(item.notebook);
+          } else if (item.op === 'deleteNotebook') {
+            await drive.deleteNotebook(item.notebook);
           }
           await localDb.dequeue(item.id!);
         } catch { /* leave unprocessed items in queue */ }
+      }
+
+      // Push current metadata for every notebook the queue touched, so titles,
+      // order, and tags written while offline reach Drive too.
+      for (const nbName of touched) {
+        if (cancelled) break;
+        try {
+          const meta = await localDb.getMetadata(nbName);
+          if (meta) {
+            const metaId = await drive.putMetadata(
+              nbName, meta.titles, meta.order, meta.updated, meta.tags ?? {}, meta.driveMetaId,
+            );
+            if (metaId) await localDb.putMetadata({ ...meta, driveMetaId: metaId });
+          }
+        } catch { /* next sync retries */ }
       }
 
       if (cancelled) { setSyncing(false); return; }
@@ -192,15 +257,20 @@ export function useNotebook(token: string | null) {
 
   // ── Internal Drive helpers ──────────────────────────────────────────────────
 
-  // Write a note to Drive and update IDB driveId; enqueue on failure.
+  // Write a note to Drive and update IDB driveId; enqueue when offline or on
+  // failure so the write syncs once a token arrives.
   const driveUpsert = useCallback(async (
     note: LocalNote,
     localMetaId: string | null,
     notebook: string,
     meta: NoteMetadata,
   ) => {
+    const enqueue = () => localDb.enqueue({
+      op: 'upsert', path: note.path, notebook, name: note.name,
+      content: note.content, driveId: note.driveId, updatedAt: note.updatedAt,
+    });
     const d = driveRef.current;
-    if (!d) return;
+    if (!d) { await enqueue(); return; }
     try {
       const newId = await d.putFile(note.path, '', note.content, note.driveId);
       await localDb.putNote({ ...note, driveId: newId });
@@ -208,11 +278,14 @@ export function useNotebook(token: string | null) {
       const local = await localDb.getMetadata(notebook);
       if (local) await localDb.putMetadata({ ...local, driveMetaId: metaId });
     } catch {
-      await localDb.enqueue({
-        op: 'upsert', path: note.path, notebook, name: note.name,
-        content: note.content, driveId: note.driveId, updatedAt: note.updatedAt,
-      });
+      await enqueue();
     }
+  }, []);
+
+  // Queue a Drive file deletion when it can't be performed right now.
+  const enqueueDelete = useCallback((path: string, notebook: string, name: string, driveId: string | null) => {
+    if (!driveId) return; // never reached Drive — nothing to delete there
+    void localDb.enqueue({ op: 'delete', path, notebook, name, driveId, updatedAt: Date.now() });
   }, []);
 
   // ── Load notebook from local DB ──────────────────────────────────────────────
@@ -277,7 +350,6 @@ export function useNotebook(token: string | null) {
   const deleteNotebook = useCallback(async (nb: Notebook) => {
     setDeletingNotebook(nb.name);
     try {
-      const driveId = (await localDb.getMetadata(nb.name))?.driveMetaId ?? null;
       await localDb.deleteNotebook(nb.name);
       setNotebooks(prev => prev.filter(n => n.name !== nb.name));
       if (selectedNotebook?.name === nb.name) {
@@ -288,10 +360,19 @@ export function useNotebook(token: string | null) {
         setView('list');
       }
       notify(`Notebook "${nb.name}" deleted.`, 'success');
-      // Delete Drive folder in background (best-effort)
-      driveRef.current?.deleteNotebook(nb.name).catch(() => {
-        if (driveId) localDb.enqueue({ op: 'delete', path: nb.name, notebook: nb.name, name: nb.name, driveId, updatedAt: Date.now() });
-      });
+
+      // Delete the Drive folder; queue the whole-notebook delete when offline
+      // or on failure (pending per-note work for it becomes moot).
+      const queueNotebookDelete = async () => {
+        await localDb.removeQueuedForNotebook(nb.name);
+        await localDb.enqueue({
+          op: 'deleteNotebook', path: `notebook:${nb.name}`,
+          notebook: nb.name, name: nb.name, updatedAt: Date.now(),
+        });
+      };
+      const d = driveRef.current;
+      if (d) d.deleteNotebook(nb.name).catch(() => { void queueNotebookDelete(); });
+      else await queueNotebookDelete();
     } catch (e) {
       notify(errMsg(e, 'Failed to delete the notebook.'), 'error');
     } finally {
@@ -398,13 +479,17 @@ export function useNotebook(token: string | null) {
     const d = driveRef.current;
     const driveId = localNote?.driveId ?? note.sha;
     if (d && driveId) {
+      const nbName = selectedNotebook.name;
       d.deleteFile(note.path, driveId, '').catch(() => {
-        // If Drive delete fails we can't easily undo; log but don't resurface.
+        // Queue it — otherwise the next Drive pull resurrects the note.
+        enqueueDelete(note.path, nbName, note.name, driveId);
       });
-      d.putMetadata(selectedNotebook.name, newTitles, newOrder, newUpdated, newTags, metadata.sha)
+      d.putMetadata(nbName, newTitles, newOrder, newUpdated, newTags, metadata.sha)
         .catch(() => {});
+    } else {
+      enqueueDelete(note.path, selectedNotebook.name, note.name, driveId);
     }
-  }, [selectedNotebook, metadata, commitMeta, notify]);
+  }, [selectedNotebook, metadata, commitMeta, notify, enqueueDelete]);
 
   // ── Move note ────────────────────────────────────────────────────────────────
 
@@ -450,19 +535,24 @@ export function useNotebook(token: string | null) {
     setNotes(prev => prev.filter(n => n.name !== note.name));
     notify(`Moved "${title}" to ${target.name}.`, 'success');
 
-    // Sync to Drive in background
+    // Sync to Drive in background (driveUpsert queues the new file when offline)
     const d = driveRef.current;
-    if (d) {
-      const newLocalNote = await localDb.getNote(newPath);
-      if (newLocalNote) {
-        driveUpsert(newLocalNote, tMeta.driveMetaId, target.name, {
-          titles: tMeta.titles, order: tMeta.order, updated: tMeta.updated, tags: tMeta.tags ?? {},
-        }).catch(() => {});
-      }
-      const oldDriveId = localNote.driveId ?? note.sha;
-      if (oldDriveId) d.deleteFile(note.path, oldDriveId, '').catch(() => {});
+    const newLocalNote = await localDb.getNote(newPath);
+    if (newLocalNote) {
+      driveUpsert(newLocalNote, tMeta.driveMetaId, target.name, {
+        titles: tMeta.titles, order: tMeta.order, updated: tMeta.updated, tags: tMeta.tags ?? {},
+      }).catch(() => {});
     }
-  }, [selectedNotebook, metadata, commitMeta, notify, driveUpsert]);
+    const oldDriveId = localNote.driveId ?? note.sha;
+    const srcName = selectedNotebook.name;
+    if (d && oldDriveId) {
+      d.deleteFile(note.path, oldDriveId, '').catch(() => {
+        enqueueDelete(note.path, srcName, note.name, oldDriveId);
+      });
+    } else {
+      enqueueDelete(note.path, srcName, note.name, oldDriveId);
+    }
+  }, [selectedNotebook, metadata, commitMeta, notify, driveUpsert, enqueueDelete]);
 
   // ── Image upload ─────────────────────────────────────────────────────────────
 
@@ -492,12 +582,18 @@ export function useNotebook(token: string | null) {
     }
 
     if (view === 'edit' && editingNote) {
-      const localNote = await localDb.getNote(editingNote.path);
+      const fileName = editingNote.path.split('/').pop() ?? '';
+      const [localNote, freshMeta] = await Promise.all([
+        localDb.getNote(editingNote.path),
+        selectedNotebook ? localDb.getMetadata(selectedNotebook.name) : Promise.resolve(null),
+      ]);
       if (localNote) {
         setEditingNote(prev => prev ? {
           ...prev,
           sha: localNote.driveId,
           content: localNote.content,
+          title: freshMeta?.titles?.[fileName] ?? prev.title,
+          tags: freshMeta?.tags?.[fileName] ?? prev.tags,
           _refreshKey: (prev._refreshKey || 0) + 1,
         } : null);
       }
@@ -568,9 +664,14 @@ export function useNotebook(token: string | null) {
     await localDb.putMetadata(updated);
     const d = driveRef.current;
     if (d) {
-      d.putMetadata(selectedNotebook.name, meta.titles, newOrder, meta.updated, meta.tags ?? {}, meta.driveMetaId)
-        .then(id => {
-          if (id) localDb.putMetadata({ ...updated, driveMetaId: id });
+      const nbName = selectedNotebook.name;
+      d.putMetadata(nbName, meta.titles, newOrder, meta.updated, meta.tags ?? {}, meta.driveMetaId)
+        .then(async id => {
+          // Re-read before writing back — only record the new Drive file ID,
+          // never revert metadata committed during the network round-trip.
+          if (!id) return;
+          const fresh = await localDb.getMetadata(nbName);
+          if (fresh) await localDb.putMetadata({ ...fresh, driveMetaId: id });
         }).catch(() => {});
     }
   }, [selectedNotebook]);

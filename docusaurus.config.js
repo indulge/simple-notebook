@@ -20,6 +20,10 @@ const config = {
 
   onBrokenLinks: 'throw',
   markdown: {
+    // .md compiles as CommonMark, .mdx as MDX. Notes published from the write
+    // app are arbitrary user markdown — MDX would fail the whole site build on
+    // stray angle-bracket text (e.g. "<city>"), CommonMark tolerates it.
+    format: 'detect',
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },

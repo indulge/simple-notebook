@@ -86,7 +86,7 @@ function ExpandableNote({
   useEffect(() => {
     setEditTags((prev) => (sameTags(prev, baseTags) ? tags : prev));
     setBaseTags(tags);
-  }, [tags.join('\n')]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tags.join('\u0000')]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Lazy-load the note body the first time the tile is expanded.
   useEffect(() => {
