@@ -25,6 +25,7 @@ export interface LocalMeta {
   titles: Record<string, string>;
   order: string[];
   updated: Record<string, number>;
+  tags?: Record<string, string[]>; // optional: rows written before tags existed lack it
   driveMetaId: string | null; // Drive file ID of _metadata.json
 }
 
@@ -144,6 +145,8 @@ export const localDb = {
   // ── Metadata ───────────────────────────────────────────────────────────────
 
   getMetadata: (notebook: string) => rget<LocalMeta>('metadata', notebook),
+
+  getAllMetadata: () => rgetAll<LocalMeta>('metadata'),
 
   putMetadata: (meta: LocalMeta) => rput('metadata', meta).then(() => {}),
 

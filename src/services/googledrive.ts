@@ -327,7 +327,7 @@ export class DriveNotebookClient {
   }
 
   async getMetadata(notebook: string): Promise<NotebookMetadataState> {
-    const empty: NotebookMetadataState = { titles: {}, order: [], updated: {}, sha: null };
+    const empty: NotebookMetadataState = { titles: {}, order: [], updated: {}, tags: {}, sha: null };
     try {
       const folderId = await this.notebookFolderId(notebook);
       const file = await this.findByName(folderId, '_metadata.json');
@@ -348,13 +348,14 @@ export class DriveNotebookClient {
     titles: Record<string, string>,
     order: string[],
     updated: Record<string, number>,
+    tags: Record<string, string[]>,
     currentId: string | null,
   ): Promise<string | null> {
     try {
       const folderId = await this.notebookFolderId(notebook);
       return await this.writeText(
         '_metadata.json',
-        serializeMetadata(titles, order, updated),
+        serializeMetadata(titles, order, updated, tags),
         folderId,
         currentId,
       );

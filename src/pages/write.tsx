@@ -121,6 +121,8 @@ function Workspace() {
               notebookName={nb.selectedNotebook?.name ?? ''}
               initialTitle={nb.editingNote?.title ?? ''}
               initialContent={nb.editingNote?.content ?? ''}
+              initialTags={nb.editingNote?.tags ?? []}
+              allTags={nb.allTags}
               saving={nb.saving}
               conflictBanner={nb.conflictBanner}
               onClearConflict={nb.clearConflict}
@@ -137,6 +139,7 @@ function Workspace() {
               onDeleteNote={nb.deleteNote}
               onMoveNote={nb.moveNote}
               metadata={nb.metadata}
+              allTags={nb.allTags}
               onLoadNote={nb.loadNoteContent}
               onSaveNote={nb.saveNoteContent}
               onReorder={nb.reorderNotes}

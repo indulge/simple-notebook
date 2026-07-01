@@ -7,16 +7,26 @@ import { formatTimestamp } from '@site/src/lib/notes';
 import { useSaveLifecycle } from '@site/src/hooks/useSaveLifecycle';
 import type { NoteContent, NoteFile } from '@site/src/types';
 import MarkdownPreview from './MarkdownPreview';
+import TagPicker from './TagPicker';
 import { s } from './styles';
 
 interface Props {
   note: NoteFile;
   title: string;
+  tags: string[];
+  /** Existing tags across all notebooks, offered as suggestions. */
+  allTags: string[];
   updatedAt: number | null;
   expanded: boolean;
   onToggle: (name: string) => void;
   onLoad: (note: NoteFile) => Promise<NoteContent>;
-  onSave: (note: NoteFile, title: string, content: string, sha: string | null) => Promise<string | null>;
+  onSave: (
+    note: NoteFile,
+    title: string,
+    content: string,
+    sha: string | null,
+    tags: string[],
+  ) => Promise<string | null>;
   deleteSlot: React.ReactNode;
   index: number;
   onDragStart: (e: React.DragEvent, name: string) => void;
@@ -29,9 +39,14 @@ interface Props {
   onMouseLeave: () => void;
 }
 
+const sameTags = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((t, i) => t === b[i]);
+
 function ExpandableNote({
   note,
   title,
+  tags,
+  allTags,
   updatedAt,
   expanded,
   onToggle,
@@ -56,6 +71,8 @@ function ExpandableNote({
   const [sha, setSha] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState(title);
   const [baseTitle, setBaseTitle] = useState(title);
+  const [editTags, setEditTags] = useState<string[]>(tags);
+  const [baseTags, setBaseTags] = useState<string[]>(tags);
   const [renderMode, setRenderMode] = useState(true);
   const save = useSaveLifecycle();
 
@@ -64,6 +81,12 @@ function ExpandableNote({
     setEditTitle((prev) => (prev === baseTitle ? title : prev));
     setBaseTitle(title);
   }, [title]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Same for tags.
+  useEffect(() => {
+    setEditTags((prev) => (sameTags(prev, baseTags) ? tags : prev));
+    setBaseTags(tags);
+  }, [tags.join('\n')]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Lazy-load the note body the first time the tile is expanded.
   useEffect(() => {
@@ -90,16 +113,17 @@ function ExpandableNote({
     };
   }, [expanded]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const isDirty = content !== baseContent || editTitle !== baseTitle;
+  const isDirty = content !== baseContent || editTitle !== baseTitle || !sameTags(editTags, baseTags);
 
   const handleSave = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
     save.begin();
     try {
-      const newSha = await onSave(note, editTitle, content, sha);
+      const newSha = await onSave(note, editTitle, content, sha, editTags);
       setSha(newSha);
       setBaseContent(content);
       setBaseTitle(editTitle);
+      setBaseTags(editTags);
       save.succeed();
     } catch (err: unknown) {
       save.fail(err instanceof Error ? err.message : 'Save failed.');
@@ -148,6 +172,16 @@ function ExpandableNote({
         <span style={{ flex: 1, fontWeight: expanded ? 600 : 400 }}>
           {title || note.name.replace(/\.mdx?$/, '')}
         </span>
+        {tags.slice(0, 3).map((tag) => (
+          <span key={tag} style={s.tagChipSmall}>
+            {tag}
+          </span>
+        ))}
+        {tags.length > 3 && (
+          <span style={s.tagChipSmall} title={tags.slice(3).join(', ')}>
+            +{tags.length - 3}
+          </span>
+        )}
         {updatedAt && (
           <span style={s.tileUpdated} title={`Last updated ${formatTimestamp(updatedAt)}`}>
             {formatTimestamp(updatedAt)}
@@ -204,6 +238,9 @@ function ExpandableNote({
                     placeholder="Note title"
                     style={{ ...s.input, ...s.titleInput }}
                   />
+                  <div style={{ margin: '2px 0 8px' }}>
+                    <TagPicker tags={editTags} suggestions={allTags} onChange={setEditTags} />
+                  </div>
                   <textarea
                     value={content}
                     onChange={(e) => setContent(e.target.value)}

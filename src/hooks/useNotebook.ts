@@ -16,6 +16,7 @@ import type {
   Notebook,
   NoteContent,
   NoteFile,
+  NoteMetadata,
   NotebookMetadataState,
   NotebookModalState,
   SaveModalState,
@@ -23,7 +24,7 @@ import type {
 
 export type WorkspaceView = 'list' | 'edit' | 'new-notebook';
 
-const EMPTY_META: NotebookMetadataState = { titles: {}, order: [], updated: {}, sha: null };
+const EMPTY_META: NotebookMetadataState = { titles: {}, order: [], updated: {}, tags: {}, sha: null };
 const CLOSED_SAVE: SaveModalState = { open: false, step: 'idle', progress: 0, error: null };
 const CLOSED_NB: NotebookModalState = { open: false, step: 'idle', error: null };
 
@@ -34,7 +35,58 @@ function toNoteFile(n: LocalNote): NoteFile {
 }
 
 function toMetaState(m: LocalMeta): NotebookMetadataState {
-  return { titles: m.titles, order: m.order, updated: m.updated, sha: m.driveMetaId };
+  return { titles: m.titles, order: m.order, updated: m.updated, tags: m.tags ?? {}, sha: m.driveMetaId };
+}
+
+/**
+ * Pull a notebook's notes + metadata from Drive into IndexedDB, keeping
+ * whichever side is newer per note. Returns true when IDB was updated with a
+ * fresher metadata snapshot (callers should re-read). Shared by the workspace
+ * (notebook open) and the GitHub publish flow.
+ */
+export async function pullNotebookFromDrive(
+  d: DriveNotebookClient,
+  notebook: string,
+): Promise<boolean> {
+  const [localNotes, localMeta] = await Promise.all([
+    localDb.getNotes(notebook),
+    localDb.getMetadata(notebook),
+  ]);
+  const [driveNotes, driveMeta] = await Promise.all([
+    d.listNotes(notebook),
+    d.getMetadata(notebook),
+  ]);
+
+  const localNoteMap = new Map(localNotes.map(n => [n.name, n]));
+
+  for (const dn of driveNotes) {
+    const ln = localNoteMap.get(dn.name);
+    const driveUpdated = driveMeta.updated[dn.name] ?? 0;
+    const localUpdated = ln?.updatedAt ?? 0;
+    if (!ln || driveUpdated > localUpdated) {
+      try {
+        const { content } = await d.getNote(notebook, dn.name);
+        await localDb.putNote({
+          path: dn.path, notebook, name: dn.name,
+          content, updatedAt: driveUpdated || Date.now(), driveId: dn.sha,
+        });
+      } catch { /* skip if fetch fails */ }
+    }
+  }
+
+  // Adopt Drive's metadata when Drive is overall newer.
+  const maxDriveTs = Object.values(driveMeta.updated).reduce((a, b) => Math.max(a, b), 0);
+  const maxLocalTs = localMeta ? Object.values(localMeta.updated).reduce((a, b) => Math.max(a, b), 0) : 0;
+  if (maxDriveTs > maxLocalTs) {
+    await localDb.putMetadata({
+      notebook,
+      titles: driveMeta.titles, order: driveMeta.order,
+      updated: driveMeta.updated, tags: driveMeta.tags,
+      driveMetaId: driveMeta.sha,
+    });
+    return true;
+  }
+  return false;
 }
 
 export function useNotebook(token: string | null) {
@@ -145,18 +197,16 @@ export function useNotebook(token: string | null) {
     note: LocalNote,
     localMetaId: string | null,
     notebook: string,
-    titles: Record<string, string>,
-    order: string[],
-    updated: Record<string, number>,
+    meta: NoteMetadata,
   ) => {
     const d = driveRef.current;
     if (!d) return;
     try {
       const newId = await d.putFile(note.path, '', note.content, note.driveId);
       await localDb.putNote({ ...note, driveId: newId });
-      const metaId = await d.putMetadata(notebook, titles, order, updated, localMetaId);
-      const meta = await localDb.getMetadata(notebook);
-      if (meta) await localDb.putMetadata({ ...meta, driveMetaId: metaId });
+      const metaId = await d.putMetadata(notebook, meta.titles, meta.order, meta.updated, meta.tags, localMetaId);
+      const local = await localDb.getMetadata(notebook);
+      if (local) await localDb.putMetadata({ ...local, driveMetaId: metaId });
     } catch {
       await localDb.enqueue({
         op: 'upsert', path: note.path, notebook, name: note.name,
@@ -181,41 +231,13 @@ export function useNotebook(token: string | null) {
     const d = driveRef.current;
     if (!d) return;
     try {
-      const [driveNotes, driveMeta] = await Promise.all([
-        d.listNotes(nb.name),
-        d.getMetadata(nb.name),
-      ]);
-
-      const localNoteMap = new Map(localNotes.map(n => [n.name, n]));
-
-      for (const dn of driveNotes) {
-        const ln = localNoteMap.get(dn.name);
-        const driveUpdated = driveMeta.updated[dn.name] ?? 0;
-        const localUpdated = ln?.updatedAt ?? 0;
-        if (!ln || driveUpdated > localUpdated) {
-          try {
-            const { content } = await d.getNote(nb.name, dn.name);
-            await localDb.putNote({
-              path: dn.path, notebook: nb.name, name: dn.name,
-              content, updatedAt: driveUpdated || Date.now(), driveId: dn.sha,
-            });
-          } catch { /* skip if fetch fails */ }
-        }
-      }
-
-      // Update metadata and notes state from Drive if Drive is overall newer
-      const maxDriveTs = Object.values(driveMeta.updated).reduce((a, b) => Math.max(a, b), 0);
-      const maxLocalTs = localMeta ? Object.values(localMeta.updated).reduce((a, b) => Math.max(a, b), 0) : 0;
-      if (maxDriveTs > maxLocalTs) {
-        const freshMeta: LocalMeta = {
-          notebook: nb.name,
-          titles: driveMeta.titles, order: driveMeta.order, updated: driveMeta.updated,
-          driveMetaId: driveMeta.sha,
-        };
-        await localDb.putMetadata(freshMeta);
-        const freshNotes = await localDb.getNotes(nb.name);
+      if (await pullNotebookFromDrive(d, nb.name)) {
+        const [freshNotes, freshMeta] = await Promise.all([
+          localDb.getNotes(nb.name),
+          localDb.getMetadata(nb.name),
+        ]);
         setNotes(freshNotes.map(toNoteFile));
-        setMetadata(toMetaState(freshMeta));
+        if (freshMeta) setMetadata(toMetaState(freshMeta));
       }
     } catch { /* Drive pull failures don't affect local-only mode */ }
   }, []);
@@ -295,35 +317,61 @@ export function useNotebook(token: string | null) {
     setView('edit');
   }, [notebooks, loadNotebook]);
 
+  // ── Tags ─────────────────────────────────────────────────────────────────────
+
+  // Union of every tag across all notebooks — the "existing tags" suggestions.
+  const [allTags, setAllTags] = useState<string[]>([]);
+
+  const refreshAllTags = useCallback(async () => {
+    const metas = await localDb.getAllMetadata();
+    const set = new Set<string>();
+    for (const m of metas) {
+      for (const list of Object.values(m.tags ?? {})) for (const t of list) set.add(t);
+    }
+    setAllTags(Array.from(set).sort((a, b) => a.localeCompare(b)));
+  }, []);
+
+  useEffect(() => {
+    if (dbReady) void refreshAllTags();
+  }, [dbReady, refreshAllTags]);
+
   // ── Note content helpers ─────────────────────────────────────────────────────
 
   const buildMeta = useCallback((
     prev: NotebookMetadataState,
     fileName: string,
     title: string,
-  ) => ({
-    titles: { ...prev.titles, [fileName]: title },
-    order: prev.order.includes(fileName) ? prev.order : [...prev.order, fileName],
-    updated: { ...prev.updated, [fileName]: Date.now() },
-  }), []);
+    tags?: string[],
+  ): NoteMetadata => {
+    const nextTags = { ...prev.tags };
+    if (tags !== undefined) {
+      if (tags.length) nextTags[fileName] = tags;
+      else delete nextTags[fileName];
+    }
+    return {
+      titles: { ...prev.titles, [fileName]: title },
+      order: prev.order.includes(fileName) ? prev.order : [...prev.order, fileName],
+      updated: { ...prev.updated, [fileName]: Date.now() },
+      tags: nextTags,
+    };
+  }, []);
 
   const commitMeta = useCallback(async (
     nb: string,
-    titles: Record<string, string>,
-    order: string[],
-    updated: Record<string, number>,
+    meta: NoteMetadata,
     currentDriveMetaId: string | null,
   ) => {
     const current = await localDb.getMetadata(nb);
     const next: LocalMeta = {
       notebook: nb,
-      titles, order, updated,
+      titles: meta.titles, order: meta.order, updated: meta.updated, tags: meta.tags,
       driveMetaId: currentDriveMetaId ?? current?.driveMetaId ?? null,
     };
     await localDb.putMetadata(next);
-    setMetadata({ titles, order, updated, sha: next.driveMetaId });
+    setMetadata({ ...meta, sha: next.driveMetaId });
+    void refreshAllTags();
     return next;
-  }, []);
+  }, [refreshAllTags]);
 
   // ── Deletion ─────────────────────────────────────────────────────────────────
 
@@ -336,9 +384,14 @@ export function useNotebook(token: string | null) {
     delete newTitles[note.name];
     const newUpdated = { ...metadata.updated };
     delete newUpdated[note.name];
+    const newTags = { ...metadata.tags };
+    delete newTags[note.name];
     const newOrder = metadata.order.filter(n => n !== note.name);
+    const newMeta: NoteMetadata = {
+      titles: newTitles, order: newOrder, updated: newUpdated, tags: newTags,
+    };
 
-    await commitMeta(selectedNotebook.name, newTitles, newOrder, newUpdated, metadata.sha);
+    await commitMeta(selectedNotebook.name, newMeta, metadata.sha);
     setNotes(prev => prev.filter(n => n.name !== note.name));
     notify('Note deleted.', 'success');
 
@@ -348,7 +401,7 @@ export function useNotebook(token: string | null) {
       d.deleteFile(note.path, driveId, '').catch(() => {
         // If Drive delete fails we can't easily undo; log but don't resurface.
       });
-      d.putMetadata(selectedNotebook.name, newTitles, newOrder, newUpdated, metadata.sha)
+      d.putMetadata(selectedNotebook.name, newTitles, newOrder, newUpdated, newTags, metadata.sha)
         .catch(() => {});
     }
   }, [selectedNotebook, metadata, commitMeta, notify]);
@@ -361,6 +414,7 @@ export function useNotebook(token: string | null) {
     if (!localNote) return;
 
     const title = metadata.titles[note.name] || note.name.replace(/\.mdx?$/, '');
+    const noteTags = metadata.tags[note.name] ?? [];
     const newPath = `${DOCS_PATH}/${target.name}/${note.name}`;
 
     // Write to target notebook in IDB
@@ -373,6 +427,10 @@ export function useNotebook(token: string | null) {
       titles: { ...(targetMeta?.titles ?? {}), [note.name]: title },
       order: [...(targetMeta?.order ?? []), note.name],
       updated: { ...(targetMeta?.updated ?? {}), [note.name]: Date.now() },
+      tags: {
+        ...(targetMeta?.tags ?? {}),
+        ...(noteTags.length ? { [note.name]: noteTags } : {}),
+      },
       driveMetaId: targetMeta?.driveMetaId ?? null,
     };
     await localDb.putMetadata(tMeta);
@@ -381,8 +439,14 @@ export function useNotebook(token: string | null) {
     delete newTitles[note.name];
     const newUpdated = { ...metadata.updated };
     delete newUpdated[note.name];
+    const newTags = { ...metadata.tags };
+    delete newTags[note.name];
     const newOrder = metadata.order.filter(n => n !== note.name);
-    await commitMeta(selectedNotebook.name, newTitles, newOrder, newUpdated, metadata.sha);
+    await commitMeta(
+      selectedNotebook.name,
+      { titles: newTitles, order: newOrder, updated: newUpdated, tags: newTags },
+      metadata.sha,
+    );
     setNotes(prev => prev.filter(n => n.name !== note.name));
     notify(`Moved "${title}" to ${target.name}.`, 'success');
 
@@ -390,7 +454,11 @@ export function useNotebook(token: string | null) {
     const d = driveRef.current;
     if (d) {
       const newLocalNote = await localDb.getNote(newPath);
-      if (newLocalNote) driveUpsert(newLocalNote, tMeta.driveMetaId, target.name, tMeta.titles, tMeta.order, tMeta.updated).catch(() => {});
+      if (newLocalNote) {
+        driveUpsert(newLocalNote, tMeta.driveMetaId, target.name, {
+          titles: tMeta.titles, order: tMeta.order, updated: tMeta.updated, tags: tMeta.tags ?? {},
+        }).catch(() => {});
+      }
       const oldDriveId = localNote.driveId ?? note.sha;
       if (oldDriveId) d.deleteFile(note.path, oldDriveId, '').catch(() => {});
     }
@@ -453,6 +521,7 @@ export function useNotebook(token: string | null) {
         sha: localNote.driveId,
         title: metadata.titles[note.name] || '',
         content: localNote.content,
+        tags: metadata.tags[note.name] ?? [],
       });
       setView('edit');
     } catch (e) {
@@ -471,7 +540,7 @@ export function useNotebook(token: string | null) {
   // ── Inline (tile) save ────────────────────────────────────────────────────────
 
   const saveNoteContent = useCallback(async (
-    note: NoteFile, title: string, content: string, _sha: string | null,
+    note: NoteFile, title: string, content: string, _sha: string | null, tags?: string[],
   ): Promise<string | null> => {
     if (!selectedNotebook) throw new Error('No notebook selected.');
     const noteTitle = title.trim() || 'untitled';
@@ -483,10 +552,10 @@ export function useNotebook(token: string | null) {
     };
     await localDb.putNote(updatedNote);
 
-    const newMeta = buildMeta(metadata, note.name, noteTitle);
-    const localMeta = await commitMeta(selectedNotebook.name, newMeta.titles, newMeta.order, newMeta.updated, metadata.sha);
+    const newMeta = buildMeta(metadata, note.name, noteTitle, tags);
+    const localMeta = await commitMeta(selectedNotebook.name, newMeta, metadata.sha);
 
-    driveUpsert(updatedNote, localMeta.driveMetaId, selectedNotebook.name, newMeta.titles, newMeta.order, newMeta.updated).catch(() => {});
+    driveUpsert(updatedNote, localMeta.driveMetaId, selectedNotebook.name, newMeta).catch(() => {});
     return updatedNote.driveId;
   }, [selectedNotebook, metadata, buildMeta, commitMeta, driveUpsert]);
 
@@ -499,7 +568,7 @@ export function useNotebook(token: string | null) {
     await localDb.putMetadata(updated);
     const d = driveRef.current;
     if (d) {
-      d.putMetadata(selectedNotebook.name, meta.titles, newOrder, meta.updated, meta.driveMetaId)
+      d.putMetadata(selectedNotebook.name, meta.titles, newOrder, meta.updated, meta.tags ?? {}, meta.driveMetaId)
         .then(id => {
           if (id) localDb.putMetadata({ ...updated, driveMetaId: id });
         }).catch(() => {});
@@ -507,7 +576,7 @@ export function useNotebook(token: string | null) {
   }, [selectedNotebook]);
 
   const createNoteInline = useCallback(async (
-    preceding: string[], following: string[], title: string, content: string,
+    preceding: string[], following: string[], title: string, content: string, tags?: string[],
   ) => {
     if (!selectedNotebook) throw new Error('No notebook selected.');
     const noteTitle = title.trim() || 'untitled';
@@ -521,22 +590,25 @@ export function useNotebook(token: string | null) {
     };
     await localDb.putNote(newNote);
 
-    const newOrder = [...preceding, fileName, ...following];
-    const newTitles = { ...metadata.titles, [fileName]: noteTitle };
-    const newUpdated = { ...metadata.updated, [fileName]: now };
-    const localMeta = await commitMeta(selectedNotebook.name, newTitles, newOrder, newUpdated, metadata.sha);
+    const newMeta: NoteMetadata = {
+      titles: { ...metadata.titles, [fileName]: noteTitle },
+      order: [...preceding, fileName, ...following],
+      updated: { ...metadata.updated, [fileName]: now },
+      tags: tags?.length ? { ...metadata.tags, [fileName]: tags } : metadata.tags,
+    };
+    const localMeta = await commitMeta(selectedNotebook.name, newMeta, metadata.sha);
 
     setNotes(prev => prev.some(n => n.name === fileName)
       ? prev : [...prev, toNoteFile(newNote)]);
     notify('Note created.', 'success');
     flashSync();
 
-    driveUpsert(newNote, localMeta.driveMetaId, selectedNotebook.name, newTitles, newOrder, newUpdated).catch(() => {});
+    driveUpsert(newNote, localMeta.driveMetaId, selectedNotebook.name, newMeta).catch(() => {});
   }, [selectedNotebook, metadata, commitMeta, notify, flashSync, driveUpsert]);
 
   // ── Full-screen save ──────────────────────────────────────────────────────────
 
-  const saveNote = useCallback(async (title: string, content: string) => {
+  const saveNote = useCallback(async (title: string, content: string, tags?: string[]) => {
     if (!selectedNotebook) return;
     setSaving(true);
 
@@ -562,12 +634,12 @@ export function useNotebook(token: string | null) {
       }
 
       setEditingNote(prev =>
-        prev ? { ...prev, title, content }
-             : { path: filePath, sha: null, title, content },
+        prev ? { ...prev, title, content, tags: tags ?? prev.tags }
+             : { path: filePath, sha: null, title, content, tags: tags ?? [] },
       );
 
-      const newMeta = buildMeta(metadata, fileName, noteTitle);
-      const localMeta = await commitMeta(selectedNotebook.name, newMeta.titles, newMeta.order, newMeta.updated, metadata.sha);
+      const newMeta = buildMeta(metadata, fileName, noteTitle, tags);
+      const localMeta = await commitMeta(selectedNotebook.name, newMeta, metadata.sha);
 
       setNotes(prev => prev.some(n => n.name === fileName)
         ? prev.map(n => n.name === fileName ? toNoteFile(updatedNote) : n)
@@ -577,7 +649,7 @@ export function useNotebook(token: string | null) {
       flashSync();
 
       // Async Drive sync (non-blocking)
-      driveUpsert(updatedNote, localMeta.driveMetaId, selectedNotebook.name, newMeta.titles, newMeta.order, newMeta.updated)
+      driveUpsert(updatedNote, localMeta.driveMetaId, selectedNotebook.name, newMeta)
         .then(async () => {
           // Update editingNote sha with Drive file ID from IDB after sync
           const synced = await localDb.getNote(filePath);
@@ -607,6 +679,7 @@ export function useNotebook(token: string | null) {
     selectedNotebook,
     notes,
     metadata,
+    allTags,
     view,
     editingNote,
     loadingNotebooks,

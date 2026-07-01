@@ -24,12 +24,14 @@ export interface NoteFile {
 
 /**
  * Parsed `_metadata.json` payload: human titles, the user-defined display
- * order, and last-updated timestamps (epoch millis) keyed by file name.
+ * order, last-updated timestamps (epoch millis), and tag lists, all keyed
+ * by file name.
  */
 export interface NoteMetadata {
   titles: Record<string, string>;
   order: string[];
   updated: Record<string, number>;
+  tags: Record<string, string[]>;
 }
 
 /** Metadata plus the Drive file ID of `_metadata.json` (in the `sha` field). */
@@ -54,6 +56,7 @@ export interface EditingNote {
   sha: string | null;
   title: string;
   content: string;
+  tags: string[];
   /** Bumped to force the editor to re-seed after a remote refresh. */
   _refreshKey?: number;
 }

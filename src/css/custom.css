@@ -186,6 +186,11 @@ select,
   opacity: 1 !important;
 }
 
+/* Tag suggestion rows highlight on hover. */
+.tag-suggest-item:hover {
+  background: var(--ifm-color-emphasis-100) !important;
+}
+
 /* Draft tile: glassmorphic — translucent, blurred, hair-thin border. */
 .note-draft-tile {
   background: rgba(255, 255, 255, 0.6) !important;

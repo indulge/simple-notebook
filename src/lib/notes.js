@@ -32,9 +32,10 @@ export function b64Decode(str) {
 }
 
 // ── Metadata helpers ─────────────────────────────────────────────────────────
-// The _metadata.json file holds note titles, the user-defined display order, and
-// the last-updated timestamp (epoch millis) for each note.
-// New format: { titles: { "file.md": "Title" }, order: [...], updated: { "file.md": 1700000000000 } }
+// The _metadata.json file holds note titles, the user-defined display order,
+// the last-updated timestamp (epoch millis), and the tag list for each note.
+// New format: { titles: { "file.md": "Title" }, order: [...],
+//               updated: { "file.md": 1700000000000 }, tags: { "file.md": ["a"] } }
 // Legacy format: a flat { "file.md": "Title" } map (order derived from key order).
 
 export function parseMetadata(obj) {
@@ -43,14 +44,15 @@ export function parseMetadata(obj) {
       titles: obj.titles,
       order: Array.isArray(obj.order) ? obj.order : Object.keys(obj.titles),
       updated: obj.updated && typeof obj.updated === 'object' ? obj.updated : {},
+      tags: obj.tags && typeof obj.tags === 'object' ? obj.tags : {},
     };
   }
   const titles = obj || {};
-  return { titles, order: Object.keys(titles), updated: {} };
+  return { titles, order: Object.keys(titles), updated: {}, tags: {} };
 }
 
-export function serializeMetadata(titles, order, updated) {
-  return JSON.stringify({ titles, order, updated: updated || {} }, null, 2);
+export function serializeMetadata(titles, order, updated, tags) {
+  return JSON.stringify({ titles, order, updated: updated || {}, tags: tags || {} }, null, 2);
 }
 
 // Last-updated epoch millis for a note: prefer the stored timestamp, then fall

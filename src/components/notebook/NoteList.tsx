@@ -22,12 +22,15 @@ interface Props {
   syncing: boolean;
   syncProgress: number;
   metadata: NotebookMetadataState;
+  /** Existing tags across all notebooks, offered as suggestions. */
+  allTags: string[];
   onLoadNote: (note: NoteFile) => Promise<NoteContent>;
   onSaveNote: (
     note: NoteFile,
     title: string,
     content: string,
     sha: string | null,
+    tags: string[],
   ) => Promise<string | null>;
   onReorder: (order: string[]) => void;
   onCreateNote: (
@@ -48,6 +51,7 @@ export default function NoteList({
   syncing,
   syncProgress,
   metadata,
+  allTags,
   onLoadNote,
   onSaveNote,
   onReorder,
@@ -281,6 +285,8 @@ export default function NoteList({
               <ExpandableNote
                 note={note}
                 title={title}
+                tags={metadata?.tags?.[note.name] ?? []}
+                allTags={allTags}
                 updatedAt={noteUpdatedAt(note.name, metadata?.updated)}
                 expanded={expanded.has(note.name)}
                 onToggle={ui.toggleExpand}

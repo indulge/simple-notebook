@@ -25,6 +25,7 @@ export function serializeMetadata(
   titles: Record<string, string>,
   order: string[],
   updated?: Record<string, number>,
+  tags?: Record<string, string[]>,
 ): string;
 
 export function noteUpdatedAt(
